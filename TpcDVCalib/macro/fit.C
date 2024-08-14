@@ -149,14 +149,14 @@ void fit(int runnumber)
     graph->SetLineColor(kBlue);
     graph->GetYaxis()->SetRangeUser(-50,20);
 
-    TF1 *fitFunc1 = new TF1("fitFunc1", "[0] + [1]*x", -130, -10);
-    fitFunc1->SetParameters(-5, -0.03);
+    TF1 *fitFunc1 = new TF1("fitFunc1", "[0] + [1]*x", z_min, -10);
+    fitFunc1->SetParameters(vec_trkr_z_val.at(nstep/2 - 2), (vec_trkr_z_val.at(nstep/2 - 2) - vec_trkr_z_val.at(0)) / (vec_peak_pos_val.at(nstep/2 - 2) - vec_peak_pos_val.at(0)));
     fitFunc1->SetParLimits(0, -20, 20);
     fitFunc1->SetParLimits(1, -1, 1);
     graph->Fit(fitFunc1, "R");
 
-    TF1 *fitFunc2 = new TF1("fitFunc2", "[0] + [1]*x", 10, 130);
-    fitFunc2->SetParameters(5, -0.03);
+    TF1 *fitFunc2 = new TF1("fitFunc2", "[0] + [1]*x", 10, z_max);
+    fitFunc2->SetParameters(vec_trkr_z_val.at(nstep - 1), (vec_trkr_z_val.at(nstep - 1) - vec_trkr_z_val.at(nstep/2 + 2)) / (vec_peak_pos_val.at(nstep - 1) - vec_peak_pos_val.at(nstep/2 + 2)));
     fitFunc2->SetParLimits(0, -20, 20);
     fitFunc2->SetParLimits(1, -1, 1);
     graph->Fit(fitFunc2, "R");

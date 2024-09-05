@@ -18,7 +18,7 @@ echo $gl1daqname
 eventcombiner -c $1 -n $2 $gl1daqname /sphenix/lustre01/sphnxpro/physics/GL1/physics/$4
 
 #make the tpc file list
-sh tpc_makelist.sh physics $1
+sh tpc_makelist.sh physics $3
 #sh make_tpc_skipped_prdflist.sh $3 $1
 
 ls ${PWD}/$gl1daqname > gl1daq_skip$1.list

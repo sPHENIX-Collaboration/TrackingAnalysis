@@ -32,5 +32,7 @@ do
 	fi
     done < $filename
     # then erase all segments from $filename less than EBDCMINSEGMENT
+    echo "For segments in "$filename
+    echo "Erasing segments prior to "$EBDCMINSEGMENT
     sed -i 1,$EBDCMINSEGMENT\d $filename
 done

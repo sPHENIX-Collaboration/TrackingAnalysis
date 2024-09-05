@@ -27,9 +27,9 @@ echo "runnumber = "$1 >> runCombiner.job
 echo "nSkip = "$2 >> runCombiner.job
 echo "nEvent = "$3 >> runCombiner.job
 echo "gl1daqfilename = "$4 >> runCombiner.job
-echo "Output = \$(Initialdir)/logfiles/log_\$(runnumber)_\$(nSkip).out" >> runCombiner.job
-echo "Error = \$(Initialdir)/logfiles/log_\$(runnumber)_\$(nSkip).err" >> runCombiner.job
-echo "Log = \$(Initialdir)/logfiles/log_\$(runnumber)_\$(nSkip).log" >> runCombiner.job
+echo "Output = \$(Initialdir)/logfiles/log_\$(runnumber)_\$(nSkip)_\$(gl1daqfilename).out" >> runCombiner.job
+echo "Error = \$(Initialdir)/logfiles/log_\$(runnumber)_\$(nSkip)_\$(gl1daqfilename).err" >> runCombiner.job
+echo "Log = \$(Initialdir)/logfiles/log_\$(runnumber)_\$(nSkip)_\$(gl1daqfilename).log" >> runCombiner.job
 echo "Arguments = \$(nSkip) \$(nEvent) \$(runnumber) \$(gl1daqfilename)" >> runCombiner.job
 echo "Queue 1" >> runCombiner.job
 

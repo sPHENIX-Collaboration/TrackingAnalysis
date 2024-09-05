@@ -33,4 +33,5 @@ echo "Log = \$(Initialdir)/logfiles/log_\$(runnumber)_\$(nSkip).log" >> runCombi
 echo "Arguments = \$(nSkip) \$(nEvent) \$(runnumber) \$(gl1daqfilename)" >> runCombiner.job
 echo "Queue 1" >> runCombiner.job
 
+chmod +x skip_prdf.sh
 condor_submit runCombiner.job

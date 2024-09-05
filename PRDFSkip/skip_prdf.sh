@@ -11,7 +11,7 @@ echo "run number "$3
 echo "original gl1daq file "$4
 
 runnumber=$(printf "%08d" $3)
-gl1daqname="gl1daq-${runnumber}-skip${1}.evt"
+gl1daqname="gl1daq-${runnumber}-skip${1}-${4}.evt"
 
 #make the gl1 skipped prdf
 echo $gl1daqname

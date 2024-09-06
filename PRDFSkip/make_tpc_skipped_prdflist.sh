@@ -44,6 +44,10 @@ do
 	    fi
 	fi
     done < $filename
+    if [ $EBDCMINSEGMENT -lt 1 ]; then
+	echo "0th segment sufficient, not erasing anything"
+	continue
+    fi
     # then erase all segments from $filename less than EBDCMINSEGMENT
     echo "For segments in "$filename
     echo "Erasing segments prior to "$EBDCMINSEGMENT

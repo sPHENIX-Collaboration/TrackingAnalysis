@@ -1,21 +1,32 @@
 #!/bin/sh
 
 runnumber=$1
+#n gl1 bcos to skip, i.e. whatever the gl1 bco is
 nSkip=$2
-sh tpc_makelist.sh physics $1
+echo "Skipping to bco "$nSkip
+sh tpc_makelist.sh physics $1 $nSkip
 
 #iterate through ebdcs
 for i in {0..23}
 do
-    filename=`printf "tpc%02i.list" $i`
+    filename=`printf "tpc%02i-${nSkip}.list" $i`
     echo $filename
     MINDIFF=9999999999999999
     EBDCMINSEGMENT=9999999999999
     #read prdf filenames from the file list
     while read prdf; do
-	# get the event number the prdf starts with
-	eventnum=$(dlist -i $prdf | grep "Event " | awk '{print $3}')
-	
+	seg=$(ls $prdf | grep -o "[0-9]\+.evt") 
+	segment=${seg%.evt}
+	segmentnozeros=$(echo $segment | sed 's/^0*//')
+       
+	# get the bco the prdf starts with
+	bco=$(ddump -i $prdf | grep -m 1 "(MDBIT) " | awk '{print $3}')
+	if [ "$((segmentnozeros))" -gt 0 ]; then
+	    bco=$(ddump -i $prdf | grep -m 1 "(LVL1 ) " | awk '{print $4}')
+	fi
+	# get the actual bco
+	eventnum=$(bc <<< "ibase=16;${bco^^}")
+
 	if [ "$((eventnum))" -gt "$nSkip" ]; then
 	    # already found the lowest bco
 	    break
@@ -24,10 +35,12 @@ do
 	# minimum distance to the skipped starting event
         if [ "$((eventnum))" -lt "$nSkip" ]; then
 	    diff="$((nSkip-eventnum))"
+	    echo "tpc bco "$eventnum
+	    echo "gl1 bco "$nSkip
+	    echo "diff is "$diff
 	    if [ "$diff" -lt "$MINDIFF" ]; then
 		MINDIFF=$diff
-	        segment=$(ls $prdf | grep -o "[0-9]\+.evt") 
-		EBDCMINSEGMENT=${segment%.evt}
+		EBDCMINSEGMENT=${seg%.evt}
 	    fi
 	fi
     done < $filename

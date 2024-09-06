@@ -14,14 +14,14 @@ fi
 
 type=$1
 runnumber=$(printf "%08d" $2)
-
+bco=$3
 for i in {0..23}
 do
 ebdc=$(printf "%02d" $i)
-/bin/ls -1 /sphenix/lustre01/sphnxpro/physics/tpc/${type}/TPC_ebdc${ebdc}_${type}-${runnumber}-* > tpc${ebdc}.list
-if [ ! -s tpc${ebdc}.list ]
+/bin/ls -1 /sphenix/lustre01/sphnxpro/physics/tpc/${type}/TPC_ebdc${ebdc}_${type}-${runnumber}-* > tpc${ebdc}-${bco}.list
+if [ ! -s tpc${ebdc}-${bco}.list ]
 then
-  echo tpc${ebdc}.list empty, removing it
-  rm  tpc${ebdc}.list
+  echo tpc${ebdc}-${bco}.list empty, removing it
+  rm  tpc${ebdc}-${bco}.list
 fi
 done

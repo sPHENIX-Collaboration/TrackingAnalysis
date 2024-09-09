@@ -10,8 +10,12 @@ echo "that includes nevents= "$2
 echo "run number "$3
 echo "original gl1daq file "$4
 
+gl1seg=$(ls /sphenix/lustre01/sphnxpro/physics/GL1/physics/$4 | grep -o "[0-9]\+.evt") 
+gl1segment=${gl1seg%.evt}
+echo "gl1segment is "$g11segment
+
 runnumber=$(printf "%08d" $3)
-gl1daqname="gl1daq-${runnumber}-skip${1}-${4}.evt"
+gl1daqname="gl1daq-${runnumber}-skip${1}-${gl1segment}.evt"
 
 #make the gl1 skipped prdf
 echo $gl1daqname
@@ -22,15 +26,13 @@ gl1bco=$(ddump -i $gl1daqname | grep "Beam Clock: " | awk '{print $3}')
 
 # shift to 40 bit to match tracker bco
 gl1bcotrb=$(($gl1bco & (1 << 40) -1))
-echo "gl1 bco "$gl1bcotrb
-#make the tpc file list
-#sh tpc_makelist.sh physics $3
-echo "Make skipped prdf list"
-sh make_tpc_skipped_prdflist.sh $3 $gl1bcotrb
-echo "make the gl1 list"
-ls ${PWD}/$gl1daqname > gl1daq_skip$1.list
 
-outfile="DST_STREAMING_run2pp_new_2024p002_skip${1}-${runnumber}-0000.root"
+#make the tpc file list
+sh make_tpc_skipped_prdflist.sh $3 $gl1bcotrb
+
+ls ${PWD}/$gl1daqname > gl1daq_skip$1-${gl1segment}.list
+
+outfile="DST_STREAMING_run2pp_new_2024p002_skip${1}-${runnumber}-${gl1segment}.root"
 
 echo "Processing the job : "
 echo "Nevents "$2

@@ -15,18 +15,24 @@ do
     EBDCMINSEGMENT=9999999999999
     #read prdf filenames from the file list
     while read prdf; do
+	
 	seg=$(ls $prdf | grep -o "[0-9]\+.evt") 
 	segment=${seg%.evt}
 	segmentnozeros=$(echo $segment | sed 's/^0*//')
-       
+        
 	# get the bco the prdf starts with
-	bco=$(ddump -i $prdf | grep -m 1 "(MDBIT) " | awk '{print $3}')
+	bco=$(ddump -i $prdf | head -n 7 | grep -m 1 "(MDBIT) " | awk '{print $3}')
 	if [ "$((segmentnozeros))" -gt 0 ]; then
-	    bco=$(ddump -i $prdf | grep -m 1 "(LVL1 ) " | awk '{print $4}')
+	    bco=$(ddump -i $prdf | head -n 7 | grep -m 1 "(LVL1 ) " | awk '{print $4}')
 	fi
 	# get the actual bco
 	eventnum=$(bc <<< "ibase=16;${bco^^}")
-
+	# no valid bco is less than 5 digits at this point
+	if [ ${#eventnum} -lt 5 ]; then
+	    # if we are in the middle of an rcdaq event just
+	    # assume the previous prdf is the best segment
+	    continue
+	fi
 	if [ "$((eventnum))" -gt "$nSkip" ]; then
 	    # already found the lowest bco
 	    break

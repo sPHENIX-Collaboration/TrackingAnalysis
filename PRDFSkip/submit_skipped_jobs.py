@@ -8,7 +8,7 @@ ngl1segments = 2
 
 print(starting_event_numbers)
 for gl1segment in range(ngl1segments):
-    gl1daqname = "GL1_physics_gl1daq-{:0>8}-{:0>4}.root".format(runnumber, gl1segment)
+    gl1daqname = "GL1_physics_gl1daq-{:0>8}-{:0>4}.evt".format(runnumber, gl1segment)
     print("Gl1 name " + gl1daqname)
     for skip in starting_event_numbers:
         command = ["sh","submit_condor.sh"]

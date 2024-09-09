@@ -44,10 +44,13 @@ namespace HeavyFlavorReco
   //string decayDescriptor = "[D0 -> K^- pi^+]cc";  //See twiki on how to set this
   string reconstructionName = "PhotonConvKFPReco";         //Used for naming output folder, file and node
   string trackmapName = "MySvtxTrackMap";
+  //Used for naming container in DST
+  string containerName = "PhotonConv";
   string outputRecoFile;
   string outputHFEffFile;
   string outputTrackingEvalFile;
   bool useMyTrackMap = true;  //Alternative Track Map
+  bool useContainer = true; // Save Container: svtxtrack and KFParticle
   bool runTruthTrigger = false;  //Decay Finder
   bool runTrackEff = false;  //HF track efficiency
   bool saveEvalFile = false;  //Official Eval root file
@@ -214,13 +217,13 @@ void myHeavyFlavorReco()
 
   if (runTrackEff) kfparticle->setTrackMapNodeName("HFSelected_SvtxTrackMap");
 
-  kfparticle->doTruthMatching(getTruthInfo);
-  kfparticle->getDetectorInfo(false);
-  kfparticle->getCaloInfo(getCaloInfo);
-  kfparticle->getAllPVInfo(false);
-  kfparticle->allowZeroMassTracks(true);
-  kfparticle->saveDST(false);
-  kfparticle->saveParticleContainer(false);
+  if (getTruthInfo) kfparticle->doTruthMatching();
+  //kfparticle->getDetectorInfo();
+  if (getCaloInfo) kfparticle->getCaloInfo();
+  //kfparticle->getAllPVInfo();
+  kfparticle->allowZeroMassTracks();
+  //kfparticle->saveDST();
+  kfparticle->dontSaveParticleContainer();
 
   bool fixToPV = false;
   bool useFakePV = false;
@@ -228,12 +231,12 @@ void myHeavyFlavorReco()
   if (useFakePV)
   {
     fixToPV = false;  //Constraining to a fake PV results in some gibberish variables
-    kfparticle->useFakePrimaryVertex(true);
+    kfparticle->useFakePrimaryVertex();
   }
 
   if (fixToPV)
   {
-    kfparticle->constrainToPrimaryVertex(true);
+    kfparticle->constrainToPrimaryVertex();
     kfparticle->setMotherIPchi2(3);
     kfparticle->setFlightDistancechi2(-1.);
     kfparticle->setMinDIRA(0.90);
@@ -269,18 +272,19 @@ void PhotonConvKFPReco()
   kfparticle->Verbosity(1);
 
   if (useMyTrackMap) kfparticle->setTrackMapNodeName(trackmapName);
+  if (useContainer) kfparticle->setContainerName(containerName);
 
   kfparticle->setDecayDescriptor(decayDescriptor);
 
   if (runTrackEff) kfparticle->setTrackMapNodeName("HFSelected_SvtxTrackMap");
 
-  kfparticle->doTruthMatching(getTruthInfo);
-  kfparticle->getDetectorInfo(false);
-  kfparticle->getCaloInfo(getCaloInfo);
-  kfparticle->getAllPVInfo(false);
-  kfparticle->allowZeroMassTracks(true);
-  kfparticle->saveDST(false);
-  kfparticle->saveParticleContainer(false);
+  if (getTruthInfo) kfparticle->doTruthMatching();
+  //kfparticle->getDetectorInfo();
+  if (getCaloInfo) kfparticle->getCaloInfo();
+  //kfparticle->getAllPVInfo();
+  kfparticle->allowZeroMassTracks();
+  kfparticle->saveDST();
+  kfparticle->use2Dmatching();
 
   bool fixToPV = false;
   bool useFakePV = true;
@@ -288,17 +292,20 @@ void PhotonConvKFPReco()
   if (useFakePV)
   {
     fixToPV = false;  //Constraining to a fake PV results in some gibberish variables
-    kfparticle->useFakePrimaryVertex(true);
+    kfparticle->useFakePrimaryVertex();
   }
 
   if (fixToPV)
   {
-    kfparticle->constrainToPrimaryVertex(true);
+    kfparticle->constrainToPrimaryVertex();
     kfparticle->setMotherIPchi2(FLT_MAX);
     kfparticle->setFlightDistancechi2(-1.);
     kfparticle->setMinDIRA(-1.1);
     kfparticle->setDecayLengthRange(-1*FLT_MAX, FLT_MAX);
   }
+
+  kfparticle->setMinMVTXhits(0);
+  kfparticle->setMinTPChits(22);
 
   //Track parameters
   kfparticle->setMinimumTrackPT(0.);
@@ -308,13 +315,13 @@ void PhotonConvKFPReco()
 
   //Vertex parameters
   kfparticle->setMaximumVertexchi2nDOF(FLT_MAX);
-  kfparticle->setMaximumDaughterDCA(10);
+  kfparticle->setMaximumDaughterDCA(FLT_MAX);
 
   //Parent parameters
   kfparticle->setMotherPT(0);
   kfparticle->setMinimumMass(-1.0);
-  kfparticle->setMaximumMass(1.0);
-  kfparticle->setMaximumMotherVertexVolume(0.9);
+  kfparticle->setMaximumMass(10.0);
+  kfparticle->setMaximumMotherVertexVolume(FLT_MAX);
   kfparticle->setMotherIPchi2(FLT_MAX);
   kfparticle->setFlightDistancechi2(-1.);
   kfparticle->setMinDIRA(-1.1);
@@ -335,10 +342,10 @@ void myDemoReco()
   kfparticle->setDecayDescriptor("B_s0 -> {J/psi -> e^+ e^-} {K_S0 -> pi^+ pi^-}");
   kfparticle->setTrackMapNodeName("HFSelected_SvtxTrackMap");
 
-  kfparticle->doTruthMatching(true);
-  kfparticle->getCaloInfo(false);
-  kfparticle->allowZeroMassTracks(true);
-  kfparticle->constrainToPrimaryVertex(true);
+  kfparticle->doTruthMatching();
+  //kfparticle->getCaloInfo();
+  kfparticle->allowZeroMassTracks();
+  kfparticle->constrainToPrimaryVertex();
   kfparticle->setOutputName("kfparticle_demo.root");
 
   //Track parameters

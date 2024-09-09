@@ -133,61 +133,50 @@ int TrackCaloMatch::process_event(PHCompositeNode* topNode)
   if(!trackMap)
   {
     trackMap = findNode::getClass<SvtxTrackMap>(topNode, m_trackMapName);
+    if(!trackMap)
+    {
+      std::cout << "trackMap not found! Aborting!" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   }
 
   if (!acts_Geometry)
   {
     acts_Geometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+    if (!acts_Geometry)
+    {
+      std::cout << "ActsTrackingGeometry not on node tree. Exiting." << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   }
 
   if ( !clustersEM ) {
-    clustersEM = findNode::getClass<RawClusterContainer>(topNode, "TOPOCLUSTER_EMCAL");
-  }
-  if ( !clustersHAD ) {
-    clustersHAD = findNode::getClass<RawClusterContainer>(topNode, "TOPOCLUSTER_HCAL");
-  }
-
-  if(!EMCAL_RawClusters)
-  {
-    EMCAL_RawClusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTERINFO_POS_COR_CEMC");
-  }
-
-  if(!EMCAL_Container)
-  {
-    EMCAL_Container = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_CEMC");
-  }
-  if(!IHCAL_Container)
-  {
-    IHCAL_Container = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALIN");
-  }
-  if(!OHCAL_Container)
-  {
-    OHCAL_Container = findNode::getClass<TowerInfoContainer>(topNode, "TOWERINFO_CALIB_HCALOUT");
-  }
-
-  if(!trkrHitSet)
-  {
-    trkrHitSet = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+    clustersEM = findNode::getClass<RawClusterContainer>(topNode, m_RawClusCont_EM_name);
+    if (!clustersEM)
+    {
+      std::cout << "TrackCaloMatch::process_event : FATAL ERROR, cannot find cluster container " << m_RawClusCont_EM_name << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   }
 
   if(!trkrContainer)
   {
     trkrContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+    if(!trkrContainer)
+    {
+      std::cout << "trkrContainer not found! Aborting!" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   }
 
   if(!EMCalGeo)
   {
     EMCalGeo = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
-  }
-
-  if(!IHCalGeo)
-  {
-    IHCalGeo = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
-  }
-
-  if(!OHCalGeo)
-  {
-    OHCalGeo = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
+    if(!EMCalGeo)
+    {
+      std::cout << "EMCalGeo not found! Aborting!" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
   }
 
   double caloRadiusEMCal;
@@ -205,6 +194,13 @@ int TrackCaloMatch::process_event(PHCompositeNode* topNode)
   TrackSeed *tpc_seed = nullptr;
   TrkrCluster *trkrCluster = nullptr;
 
+  //for (auto &iter : *trackMap)
+  //{
+  //  SvtxTrack* kfp = iter.second;
+  //  std::cout<<"iter.first = "<<iter.first<<std::endl;
+  //  std::cout<<"svtxtrack id = "<<kfp->get_id()<<" px = "<<kfp->get_px()<<" py = "<<kfp->get_py()<<" pz = "<<kfp->get_pz()<<std::endl;
+  //}
+
   int num_matched_pair = 0;
   for (auto &iter : *trackMap)
   {
@@ -213,7 +209,7 @@ int TrackCaloMatch::process_event(PHCompositeNode* topNode)
     if(!track) continue;
 
     float track_p = track->get_p();
-    if(track_p < 1.5)
+    if(track_p < m_track_pt_low_cut)
     {
       continue;
     }
@@ -239,7 +235,7 @@ int TrackCaloMatch::process_event(PHCompositeNode* topNode)
       }
     }
 
-    if(n_tpc_clusters<22) 
+    if(n_tpc_clusters<m_ntpc_low_cut) 
     {
       continue;
     }
@@ -251,6 +247,7 @@ int TrackCaloMatch::process_event(PHCompositeNode* topNode)
     float _track_y_emc = NAN;
     float _track_z_emc = NAN;
 
+//std::cout<<"yuxd test: track px,py,pz = "<<track->get_px()<<" "<<track->get_py()<<" "<<track->get_pz()<<" x,y,z = "<<track->get_x()<<" "<<track->get_y()<<" "<<track->get_z()<<" id = "<<track->get_id()<<std::endl;
     if(!thisState)
     {
       continue;
@@ -275,7 +272,7 @@ int TrackCaloMatch::process_event(PHCompositeNode* topNode)
     for (clusIter_EMC = begin_end_EMC.first; clusIter_EMC != begin_end_EMC.second; ++clusIter_EMC)
     {
       cluster = clusIter_EMC->second;
-      if(cluster->get_energy() < 1)
+      if(cluster->get_energy() < m_emcal_e_low_cut)
       {
         continue;
       }
@@ -284,19 +281,17 @@ int TrackCaloMatch::process_event(PHCompositeNode* topNode)
       float _emcal_eta = asinh(cluster->get_z()/sqrt(cluster->get_x()*cluster->get_x() + cluster->get_y()*cluster->get_y()));
       float _emcal_x = cluster->get_x();
       float _emcal_y = cluster->get_y();
-      float _emcal_z = cluster->get_z();
+      float radius_scale = m_emcal_radius_user / sqrt(_emcal_x*_emcal_x+_emcal_y*_emcal_y);
+      float _emcal_z = radius_scale*cluster->get_z();
 
       float dphi = PiRange(_track_phi_emc - _emcal_phi);
       float dz = _track_z_emc - _emcal_z;
 
-      if(fabs(dphi)<0.1 && fabs(dz)<20)
+      if(fabs(dphi)<m_dphi_cut && fabs(dz)<m_dz_cut)
       {
         std::cout<<"matched tracks!!!"<<std::endl;
-        std::cout<<"_track_x_emc = "<<_track_x_emc<<" , _emcal_x = "<<_emcal_x<<std::endl;
-        std::cout<<"_track_y_emc = "<<_track_y_emc<<" , _emcal_y = "<<_emcal_y<<std::endl;
-        std::cout<<"_track_z_emc = "<<_track_z_emc<<" , _emcal_z = "<<_emcal_z<<std::endl;
-        std::cout<<"_track_phi_emc = "<<_track_phi_emc<<" , _emcal_phi = "<<_emcal_phi<<std::endl;
-        std::cout<<"_track_eta_emc = "<<_track_eta_emc<<" , _emcal_eta = "<<_emcal_eta<<std::endl;
+        std::cout<<"emcal x = "<<_emcal_x<<" , y = "<<_emcal_y<<" , z = "<<_emcal_z<<" , phi = "<<_emcal_phi<<" , eta = "<<_emcal_eta<<std::endl;
+        std::cout<<"track projected x = "<<_track_x_emc<<" , y = "<<_track_y_emc<<" , z = "<<_track_z_emc<<" , phi = "<<_track_phi_emc<<" , eta = "<<_track_eta_emc<<std::endl;
         std::cout<<"track px = "<<track->get_px()<<" , py = "<<track->get_py()<<" , pz = "<<track->get_pz()<<" , pt = "<<track->get_pt()<<" , p = "<<track->get_p()<<" , charge = "<<track->get_charge()<<std::endl;
 
         is_match = true;
@@ -305,7 +300,9 @@ int TrackCaloMatch::process_event(PHCompositeNode* topNode)
 
     if(is_match)
     {
-      trackMap_new->insert(iter.second);
+      //trackMap_new->insert(iter.second);
+      trackMap_new->insertWithKey(iter.second,iter.first);
+//std::cout<<"Hey!!!!!! insertWithKey iter.first = "<<iter.first<<" , track->get_id() = "<<track->get_id()<<std::endl;
       num_matched_pair++;
     }
   }

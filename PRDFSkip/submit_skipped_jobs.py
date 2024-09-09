@@ -11,6 +11,12 @@ for gl1segment in range(ngl1segments):
     gl1daqname = "GL1_physics_gl1daq-{:0>8}-{:0>4}.root".format(runnumber, gl1segment)
     print("Gl1 name " + gl1daqname)
     for skip in starting_event_numbers:
-        command = "submit_condor.sh " + str(runnumber) + " " + str(skip) + " " + str(nEvent) + " " + gl1daqname
+        command = ["sh","submit_condor.sh"]
+        command.append(str(runnumber))
+        command.append(str(skip))
+        command.append(str(nEvent))
+        command.append(gl1daqname)
+        #command = "sh submit_condor.sh " + str(runnumber) + " " + str(skip) + " " + str(nEvent) + " " + gl1daqname
         print(command)
-        #subprocess.run()
+        subprocess.run("pwd")
+        subprocess.run(command)

@@ -19,31 +19,34 @@ libtrack_to_calo_la_LIBADD = \
   -lActsExamplesCommon \
   -lActsExamplesDetectorTGeo \
   -lActsExamplesFramework \
-	-lSubsysReco \
-	-ltrackbase_historic_io \
-	-ltrack_io \
-	-ltrack_reco \
-	-lcalo_io \
-	-lglobalvertex_io \
-	-lg4detectors_io \
-	-lphparameter
+  -lSubsysReco \
+  -ltrackbase_historic_io \
+  -ltrack_io \
+  -ltrack_reco \
+  -lcalo_io \
+  -lglobalvertex_io \
+  -lg4detectors_io \
+  -lphparameter \
+  -lkfparticle_sphenix_io \
+  -lkfparticle_sphenix
 
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -isystem$(ROOTSYS)/include
+  -isystem$(ROOTSYS)/include \
+  -DHomogeneousField
 
 pkginclude_HEADERS = \
   TrackCaloMatch.h \
   TrackToCalo.h \
-	CaloOnly.h \
-	TrackOnly.h
+  CaloOnly.h \
+  TrackOnly.h
 
 libtrack_to_calo_la_SOURCES = \
   TrackCaloMatch.cc \
   TrackToCalo.cc \
-	CaloOnly.cc \
-	TrackOnly.cc
+  CaloOnly.cc \
+  TrackOnly.cc
 
 ################################################
 # linking tests

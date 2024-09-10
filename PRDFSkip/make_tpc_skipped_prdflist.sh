@@ -9,7 +9,7 @@ sh tpc_makelist.sh physics $1 $nSkip
 #iterate through ebdcs
 for i in {0..23}
 do
-    filename=`printf "tpc%02i-${nSkip}.list" $i`
+    filename=`printf "tpc%02i-%08i-${nSkip}.list" $i $runnumber`
     echo $filename
     MINDIFF=9999999999999999
     EBDCMINSEGMENT=9999999999999

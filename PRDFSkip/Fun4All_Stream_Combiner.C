@@ -276,7 +276,7 @@ void Fun4All_Stream_Combiner(int nEvents = 5, int RunNumber = 41989,
 
   se->End();
 
-  TString qaname = "HIST_" + outfile + "-" + RunNumber + "-0000.root";
+  TString qaname = "HIST_" + outfile;
   std::string qaOutputFileName(qaname.Data());
   QAHistManagerDef::saveQARootFile(qaOutputFileName);
   delete se;

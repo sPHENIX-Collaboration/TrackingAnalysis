@@ -18,10 +18,10 @@ bco=$3
 for i in {0..23}
 do
 ebdc=$(printf "%02d" $i)
-/bin/ls -1 /sphenix/lustre01/sphnxpro/physics/tpc/${type}/TPC_ebdc${ebdc}_${type}-${runnumber}-* > tpc${ebdc}-${bco}.list
-if [ ! -s tpc${ebdc}-${bco}.list ]
+/bin/ls -1 /sphenix/lustre01/sphnxpro/physics/tpc/${type}/TPC_ebdc${ebdc}_${type}-${runnumber}-* > tpc${ebdc}-${runnumber}-${bco}.list
+if [ ! -s tpc${ebdc}-${runnumber}-${bco}.list ]
 then
-  echo tpc${ebdc}-${bco}.list empty, removing it
-  rm  tpc${ebdc}-${bco}.list
+  echo tpc${ebdc}-${runnumber}-${bco}.list empty, removing it
+  rm  tpc${ebdc}-${runnumber}-${bco}.list
 fi
 done

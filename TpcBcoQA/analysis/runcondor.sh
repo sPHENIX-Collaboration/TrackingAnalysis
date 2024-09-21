@@ -59,20 +59,27 @@ echo "------ Condor setup configuration : ------"
 cat condor_ana.job
 echo "------------------------------------------"
 
+job_submission_log="${MONITORLOGDIR}/job_submission_ana_${1}.log"
+job_ids_file="${MONITORLOGDIR}/job_ids_${1}.txt"
+monitor_log="${MONITORLOGDIR}/monitor_${1}.log"
 
-condor_submit condor_ana.job > ${MONITORLOGDIR}/job_submission_ana_${1}.log
-CLUSTER_ID=$(grep -oP "submitted to cluster \K\d+" ${MONITORLOGDIR}/job_submission_ana_${1}.log)
-NUM_JOBS=$(grep -oP "\d+(?= job\(s\) submitted)" ${MONITORLOGDIR}/job_submission_ana_${1}.log)
+: > "$job_submission_log"
+: > "$job_ids_file"
+: > "$monitor_log"
+
+condor_submit condor.job >> "$job_submission_log"
+CLUSTER_ID=$(grep -oP "submitted to cluster \K\d+" "$job_submission_log")
+NUM_JOBS=$(grep -oP "\d+(?= job\(s\) submitted)" "$job_submission_log")
 
 for i in $(seq 0 $(($NUM_JOBS-1))); do
-  echo "$CLUSTER_ID.$i" >> ${MONITORLOGDIR}/job_ids_${1}.txt
+  echo "$CLUSTER_ID.$i" >> "$job_ids_file"
 done
 
 echo "------ condor job for run ${1} submitted as : ------"
-cat ${MONITORLOGDIR}/job_submission_ana_${1}.log
+cat "$job_submission_log"
 echo "----------------------------------------------------"
 
 echo "....... now checking for condor log every 30 seconds ......"
 echo "....... Please wait for notifications ....."
 
-nohup bash ana_monitor_condor_jobs.sh ${MONITORLOGDIR}/job_ids_${1}.txt $LOGDIR > ${MONITORLOGDIR}/monitor_${1}.log 2>&1 &
+nohup bash ana_monitor_condor_jobs.sh "$job_ids_file" "$LOGDIR" >> "$monitor_log" 2>&1 &

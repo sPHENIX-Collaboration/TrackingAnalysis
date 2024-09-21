@@ -1,4 +1,5 @@
 # sPHENIX_PmonTpcBcoCheck
+Note this is a Pmonitor check not through Fun4All and only works in SDCC.
 
 ## setup
 Change the email address in the ```email.config``` file to yours

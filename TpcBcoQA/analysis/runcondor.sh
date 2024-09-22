@@ -67,7 +67,7 @@ monitor_log="${MONITORLOGDIR}/monitor_${1}.log"
 : > "$job_ids_file"
 : > "$monitor_log"
 
-condor_submit condor.job >> "$job_submission_log"
+condor_submit condor_ana.job >> "$job_submission_log"
 CLUSTER_ID=$(grep -oP "submitted to cluster \K\d+" "$job_submission_log")
 NUM_JOBS=$(grep -oP "\d+(?= job\(s\) submitted)" "$job_submission_log")
 

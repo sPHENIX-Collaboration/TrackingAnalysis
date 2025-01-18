@@ -464,7 +464,7 @@ void siliconQA()
     for (auto& [statements, runs] : map_allsiliconruns_categories)
     {
       std::sort(runs.begin(), runs.end());
-      f_md << "> **" << statements << "**\n\n";
+      f_md << "**" << statements << "**\n\n> ";
       for (int run : runs) {
         f_md << run << " ";
       }

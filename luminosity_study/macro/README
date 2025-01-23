@@ -1,0 +1,61 @@
+1. make sure to compile the source code and open your own directory for local setup.sh
+typical steps: 
+1)Set up local evt, i.e. add the lines to your ~/.bash_profile from /sphenix/u/xuzhiwan/.bash_profile, 
+replace 'xuzhiwan' to your $user-name
+2)go to the source code 'rawbcolumi', do the following
+	>>> mkdir build
+	>>> cd build
+	>>> ../autogen.sh --prefix=$MYISNTALL
+	>>> make
+	>>> make install
+Now the compiling is finished.
+
+2. Go to the macro, generate the run list file:
+>>> bash generate_condor_list.sh
+it will generate the run list under list/, and create the output directory under output/
+also a file 'condor.list ' that will be used for submitting jobs
+Notice the "gl1daq.list" under home directory is simply for testing
+
+3. test interactively using the macro:Fun4All_SingleStream_Combiner.C
+>>> root -b -q Fun4All_SingleStream_Combiner.C
+You should see file output like :
+  output_streaming_202.root
+where 202 meaning 200 events are input. You may look into the root files and check
+if the trees have input
+
+4.To submit jobs:
+>>> condor_submit condor.job
+the resulting files will be produced under output/$runnumber
+
+5. merge the files, check the 'unfinished files' or bad runs:
+ The files are stored every 5000 events under safe mode, while typically a streaming run
+has input of 10-20M events. To merge files, please copy everything under
+>>> cp merge-code/* output/
+there are: check_alist.sh  check_badrun.sh  check_finished.sh  mergeFiles.C  merge.sh
+
+ To merge:
+>>> bash merge.sh
+The merged files will be renamed and move to rootfiles/
+
+ To check those runs if they are finished:
+1)first, use check_alist.sh to generate a list of file from condor that are still running.
+the output will be add to a.list
+>>> bash check_alist.sh > a.list 
+2)then, check how many files have been finished by
+>>> bash check_finished.sh 
+3)then, for those are not finished, insert the list of finished files into check_badruns.sh,
+then run
+>>> bash check_badrun.sh
+
+
+6.To calculate and plot out the luminosity based onroot file:
+go to plot/ and run
+>>> bash plot.sh
+which will create a directory and run this inside each directory root -b -q AnalyzeLumiFile.C 
+
+If you want to plot your own QA plot, please run first
+>>> bash subtract_run_lumi_event.sh
+Then replace the data points inside 'Plot_total_lumi_run1.C'
+Pay attention, there are some runs that currently suffering from 'missing evt'. You need to obtain
+the true event number from our database: http://www.sphenix-intra.bnl.gov:7815/cgi-bin/run_info.py?time_range=0&type=physics&duration=300&magnet=any&rl1=53880&rl2=53880
+The output plots are pdf files that can be downloaded.

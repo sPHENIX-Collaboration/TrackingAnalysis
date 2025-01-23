@@ -1,52 +1,163 @@
+#include <SiliconQA.h>
 
+#include <cdbobjects/CDBTTree.h>
 #include <ffamodules/CDBInterface.h>
 
+#include <phool/phool.h>
 #include <phool/recoConsts.h>
-#include <cdbobjects/CDBTTree.h>
 
-#include <optional>
-#include <iostream>
+#include <TF1.h>
+#include <TH2.h>
+#include <TH1F.h>
+#include <TGraphErrors.h>
+#include <TFile.h>
+
+
 #include <fstream>
 #include <filesystem>
-#include <vector>
 #include <string>
 
-R__LOAD_LIBRARY(libffamodules.so)
-R__LOAD_LIBRARY(libphool.so)
-R__LOAD_LIBRARY(libcdbobjects.so)
 
-// *********** INTT HIT QA THRESHOLDS *********** //
-float ACCEPTANCE_THRESHOLD = 0.875;
-float ACCEPTANCE_RMS_THRESHOLD = 0.8125;
-// ********************************************** //
+SiliconQA::SiliconQA()
+{
+}
 
-// *********** INTT BCO DIFF *********** //
-int BCO_DIFF_VALUE = 23;
-// ************************************* //
+void SiliconQA::GetQAhtml()
+{
+  for (const auto &entry : std::filesystem::directory_iterator(_inputbasedir))
+  {
+    std::string inputfile_hit = entry.path().string();
+    
+    if (inputfile_hit.find("HIST_DST_TRKR_HIT") == std::string::npos)
+    {
+    continue;
+    }
 
-// *********** MVTX CLUSTER QA THRESHOLDS *********** //
-float scaledchi2ndf_good = 0.0015;
-float scaledchi2ndf_bad = 0.01;
-float scaledchi2ndf_good_b49961 = 0.0015;
-float scaledchi2ndf_bad_b49961 = 0.01;
-float scaledchi2ndf_good_a49961 = 0.015;
-float scaledchi2ndf_bad_a49961 = 0.025;
-float avgclus_threshold = -1E9; // will be set later
-float bovera_high = 0.28;
-float bovera_low = 0.24;
-float bovera_high_b49961 = 0.28;
-float bovera_low_b49961 = 0.24;
-float bovera_high_a49961 = 0.1;
-float bovera_low_a49961 = 0.05;
-// ************************************************** //
+    // get run number from qa file
+    std::string s_runnumber = inputfile_hit.substr(inputfile_hit.find("-000") + 4, 5);
+    int run = ::atoi(s_runnumber.c_str());
 
-// *********** MVTX HIT QA THRESHOLDS *********** //
-float layer0hitthresh = 0.95;
-float layer1hitthresh = 0.95;
-float layer2hitthresh = 0.95;
-// ********************************************** //
 
-float rawHitAcceptance(TH2 *h2)
+    // If goldenruns: limit run selection to 51730-52206, 52469-53880
+    if (b_goldenruns)
+    {
+      if (run < 51730 || (run > 52206 && run < 52469) || run > 53880)
+      {
+        continue;
+      }
+    }
+
+    // skip if already processed run
+    if (processed_runs.find(run) != processed_runs.end()){continue;}
+
+    // add run to processed runs
+    processed_runs.insert(run);
+
+    auto pos = inputfile_hit.find("HIST_DST_TRKR_HIT");
+    std::string inputfile_clust = inputfile_hit;
+    inputfile_clust.replace(pos, std::string("HIST_DST_TRKR_HIT").size(), "HIST_DST_TRKR_CLUSTER");
+
+    if (!std::filesystem::exists(inputfile_clust))
+    {
+    continue;
+    }
+
+    map_inputfile_hit[run] = inputfile_hit;
+    map_inputfile_clust[run] = inputfile_clust;
+  }
+
+}
+
+void SiliconQA::doQA()
+{
+  std::vector<int> runlist(processed_runs.begin(), processed_runs.end());
+  for (const auto &run : runlist)
+  {
+    runnumber = run;
+
+    TFile *f_hit = new TFile(map_inputfile_hit[runnumber].c_str(), "READ");
+    TFile *f_clust = new TFile(map_inputfile_clust[runnumber].c_str(), "READ");
+
+    // =========================  Do INTT QA  =========================
+    // inttQA() returns a tuple with elements:
+    // 0: BCO diff 
+    // 1: Good channel+chip fraction
+    // 2: Good FEE fraction (from RMS of hits in channels/chips)
+    auto inttqaresult = inttQA(f_hit);
+    if (inttqaresult)
+    {
+    map_inttQA[runnumber] = *inttqaresult;
+    } else 
+    {
+    continue;
+    }
+    // ================================================================
+
+    
+    // =========================  Do MVTX QA  =========================
+    // mvtxQA() returns a tuple with elements:
+    // 0: layer 0 good stave+chip fraction
+    // 1: layer 1 good stave+chip fraction
+    // 2: layer 2 good stave+chip fraction
+    // 3: average number of clusters per phi bin
+    // 4: modulation amplitude of cosine fit to cluster phi
+    // 5: phase offset of cosine fit to cluster phi
+    // 6: chi2/NDF of cosine fit to cluster phi
+    auto mvtxqaresult = mvtxQA(f_hit, f_clust);
+    if (mvtxqaresult)
+    {
+    map_mvtxQA[runnumber] = *mvtxqaresult;
+    } else 
+    {
+    continue;
+    }
+    // ================================================================
+
+    // ========================= QA Checks =========================
+    std::string statementQA = "";
+
+    // INTT QA
+    statementQA += (std::get<0>(map_inttQA[runnumber]) ? 
+                        "\u2705 INTT BCO Diff " : "\u274C INTT BCO Diff ");
+    statementQA += (std::get<1>(map_inttQA[runnumber]) >= ACCEPTANCE_THRESHOLD ? 
+                        "\u2705 INTT Hit Acceptance " : "\u274C INTT Hit Acceptance ");
+    statementQA += (std::get<2>(map_inttQA[runnumber]) >= ACCEPTANCE_RMS_THRESHOLD ? 
+                        "\u2705 INTT FEE RMS " : "\u274C INTT FEE RMS ");
+    // MVTX QA
+    statementQA += (std::get<0>(map_mvtxQA[runnumber]) >= layer0hitthresh && 
+                        std::get<1>(map_mvtxQA[runnumber]) >= layer1hitthresh &&
+                        std::get<2>(map_mvtxQA[runnumber]) >= layer2hitthresh ? 
+                        "\u2705 MVTX Hit Acceptance " : "\u274C MVTX Hit Acceptance ");
+    statementQA += ((runnumber <= 49961 && std::get<6>(map_mvtxQA[runnumber]) <= scaledchi2ndf_good_b49961) ||
+                        (runnumber > 49961 && std::get<6>(map_mvtxQA[runnumber]) <= scaledchi2ndf_good_a49961) ?
+                        "\u2705 MVTX chi2/ndf " : "\u274C MVTX chi2/ndf ");
+    statementQA += ((runnumber <= 49961 && (std::get<4>(map_mvtxQA[runnumber]) / std::get<3>(map_mvtxQA[runnumber])) >= bovera_low_b49961) ||
+                        (runnumber > 49961 && (std::get<4>(map_mvtxQA[runnumber]) / std::get<3>(map_mvtxQA[runnumber])) >= bovera_low_a49961) ?
+                        "\u2705 MVTX B/A ratio " : "\u274C MVTX B/A ratio "); 
+    statementQA += (std::get<3>(map_mvtxQA[runnumber]) >= avgclus_threshold ?
+                        "\u2705 MVTX Run length" : "\u274C MVTX Run length");
+
+
+    // Group runs by their condition results
+    map_allsiliconruns_categories[statementQA].push_back(runnumber);
+    if (statementQA == "\u2705 INTT BCO Diff \u2705 INTT Hit Acceptance \u2705 INTT FEE RMS \u2705 MVTX Hit Acceptance \u2705 MVTX chi2/ndf \u2705 MVTX B/A ratio \u2705 MVTX Run length")
+    {
+    std::get<0>(map_goodsiliconruns[runnumber]) = std::get<1>(map_inttQA[runnumber]);
+    std::get<1>(map_goodsiliconruns[run]) = (std::get<0>(map_mvtxQA[run]) + std::get<1>(map_mvtxQA[run]) + std::get<0>(map_mvtxQA[run]))/3;
+    }
+    
+    std::cout << "Run: " << run << "\n" << statementQA << std::endl;
+
+    f_hit->Close();
+    f_clust->Close();
+    delete f_hit;
+    delete f_clust;
+
+  }
+}
+
+
+float SiliconQA::rawHitAcceptance(TH2 *h2)
 {
   int totalX = h2->GetNbinsX();
   int totalY = h2->GetNbinsY();
@@ -76,7 +187,8 @@ float rawHitAcceptance(TH2 *h2)
   return good_bins_eff;
 }
 
-std::tuple<float, float, float, float> fitClusPhi(TH1F *hm)
+
+std::tuple<float, float, float, float> SiliconQA::fitClusPhi(TH1F *hm)
 {
     // get the average number of clusters per bin
     float avgc = hm->Integral() / hm->GetNbinsX();
@@ -93,7 +205,8 @@ std::tuple<float, float, float, float> fitClusPhi(TH1F *hm)
     return std::make_tuple(f1->GetParameter(0), f1->GetParameter(1), f1->GetParameter(2), (f1->GetChisquare() / f1->GetParameter(0)) / f1->GetNDF());
 }
 
-void getLTSRegStdDev(TGraphErrors *graph, float fit, float &stddev) 
+
+void SiliconQA::getLTSRegStdDev(TGraphErrors *graph, float fit, float &stddev) 
 {
   int N = graph->GetN();
   std::vector<std::pair<double, double>> residuals(N);
@@ -120,7 +233,8 @@ void getLTSRegStdDev(TGraphErrors *graph, float fit, float &stddev)
   stddev = std::sqrt(sumSquared / trimmedSize);
 }
 
-std::optional<std::tuple<bool, float, float>> inttQA(TFile* qafile, int run)
+
+std::optional<std::tuple<bool, float, float>> SiliconQA::inttQA(TFile* qafile)
 {
   
   std::tuple <bool, float, float> tup_intt;
@@ -129,14 +243,14 @@ std::optional<std::tuple<bool, float, float>> inttQA(TFile* qafile, int run)
   bool intt_bco_diff_qa = true;
 
   auto rc = recoConsts::instance();
-  rc->set_IntFlag("RUNNUMBER", run);
+  rc->set_IntFlag("RUNNUMBER", runnumber);
   rc->set_StringFlag("CDB_GLOBALTAG", "ProdA_2024");
-  rc->set_uint64Flag("TIMESTAMP", run);
+  rc->set_uint64Flag("TIMESTAMP", runnumber);
 
   std::string intt_bco_calib_dir = CDBInterface::instance()->getUrl("INTT_BCOMAP");
   if (intt_bco_calib_dir.empty())
   {
-    std::cout << "No INTT BCOMAP for Run " << run << std::endl;
+    std::cout << "No INTT BCOMAP for Run " << runnumber << std::endl;
     intt_bco_diff_qa = false;
   }
   else
@@ -146,8 +260,6 @@ std::optional<std::tuple<bool, float, float>> inttQA(TFile* qafile, int run)
     uint64_t N = cdbttree->GetSingleIntValue("size");
     for (uint64_t n = 0; n < N; ++n)
     {
-      int felix_server = cdbttree->GetIntValue(n, "felix_server");
-      int felix_channel = cdbttree->GetIntValue(n, "felix_channel");
       int bco_diff = cdbttree->GetIntValue(n, "bco_diff");
       if (!(bco_diff == BCO_DIFF_VALUE || bco_diff == -1))
       {
@@ -157,7 +269,6 @@ std::optional<std::tuple<bool, float, float>> inttQA(TFile* qafile, int run)
     }
   }
 
-  
   // Get the 2D INTT chip/channel hit distributions
   // X: Chip on FEE, Y: Channel on FEE
   TGraphErrors *gRMS_Chip = new TGraphErrors();
@@ -287,7 +398,7 @@ std::optional<std::tuple<bool, float, float>> inttQA(TFile* qafile, int run)
   return tup_intt;
 }
 
-std::optional<std::tuple<float, float, float, float, float, float, float>> mvtxQA(TFile* qafile_hit, TFile *qafile_clust, int run)
+std::optional<std::tuple<float, float, float, float, float, float, float>> SiliconQA::mvtxQA(TFile* qafile_hit, TFile *qafile_clust)
 {
   std::tuple<float, float, float, float, float, float, float> tup_mvtx;
 
@@ -322,139 +433,10 @@ std::optional<std::tuple<float, float, float, float, float, float, float>> mvtxQ
 
 }
 
-
-void siliconQA()
+void SiliconQA::WriteMarkdown()
 {
-
-  std::string inputbasdir = "/sphenix/data/data02/sphnxpro/QAhtml/aggregated";
-
-  //============= processed runs =============
-  std::unordered_set<int> processed_runs;
-  //=========================================
-
-  std::map<int, std::tuple<bool, float, float>> map_inttQA;
-  std::map<int, std::tuple<float, float, float, float, float, float, float>> map_mvtxQA;
-  std::map<int, std::tuple<float, float>> map_goodsiliconruns;
-  std::map<std::string, std::vector<int>> map_allsiliconruns_categories;
-  for (const auto &entry : std::filesystem::directory_iterator(inputbasdir))
-  {
-    std::string inputfile_hit = entry.path().string();
-      
-    if (inputfile_hit.find("HIST_DST_TRKR_HIT") == std::string::npos)
-    {
-      continue;
-    }
-
-    // get run number from qa file
-    std::string runnumber = inputfile_hit.substr(inputfile_hit.find("-000") + 4, 5);
-    int run = ::atoi(runnumber.c_str());
-
-    // skip if already processed run
-    if (processed_runs.find(run) != processed_runs.end()){continue;}
-
-    // add run to processed runs
-    processed_runs.insert(run);
-
-    // For now, limit run selection to 51730-52206, 52469-53880
-    if (run < 51730 || (run > 52206 && run < 52469) || run > 53880)
-    {
-      continue;
-    }
-
-    TFile *f_hit = new TFile(inputfile_hit.c_str(), "READ");
-
-    auto pos = inputfile_hit.find("HIST_DST_TRKR_HIT");
-    std::string inputfile_clust = inputfile_hit;
-    inputfile_clust.replace(pos, std::string("HIST_DST_TRKR_HIT").size(), "HIST_DST_TRKR_CLUSTER");
-
-    if (!std::filesystem::exists(inputfile_clust))
-    {
-      continue;
-    }
-
-    TFile *f_clust = new TFile(inputfile_clust.c_str(), "READ");
-
-    // =========================  Do INTT QA  =========================
-    // inttQA() returns a tuple with elements:
-    // 0: BCO diff 
-    // 1: Good channel+chip fraction
-    // 2: Good FEE fraction (from RMS of hits in channels/chips)
-    auto inttqaresult = inttQA(f_hit, run);
-    if (inttqaresult)
-    {
-      map_inttQA[run] = *inttqaresult;
-    } else 
-    {
-      continue;
-    }
-    // ================================================================
-
-    
-    // =========================  Do MVTX QA  =========================
-    // mvtxQA() returns a tuple with elements:
-    // 0: layer 0 good stave+chip fraction
-    // 1: layer 1 good stave+chip fraction
-    // 2: layer 2 good stave+chip fraction
-    // 3: average number of clusters per phi bin
-    // 4: modulation amplitude of cosine fit to cluster phi
-    // 5: phase offset of cosine fit to cluster phi
-    // 6: chi2/NDF of cosine fit to cluster phi
-    auto mvtxqaresult = mvtxQA(f_hit, f_clust, run);
-    if (mvtxqaresult)
-    {
-      map_mvtxQA[run] = *mvtxqaresult;
-    } else 
-    {
-      continue;
-    }
-    // ================================================================
-    
-    // ========================= QA Checks =========================
-    
-    bool passesQA = true;
-    std::string statementQA;
-
-    // INTT QA
-    statementQA += (std::get<0>(map_inttQA[run]) ? 
-                         "\u2705 INTT BCO Diff " : "\u274C INTT BCO Diff ");
-    statementQA += (std::get<1>(map_inttQA[run]) >= ACCEPTANCE_THRESHOLD ? 
-                        "\u2705 INTT Hit Acceptance " : "\u274C INTT Hit Acceptance ");
-    statementQA += (std::get<2>(map_inttQA[run]) >= ACCEPTANCE_RMS_THRESHOLD ? 
-                        "\u2705 INTT FEE RMS " : "\u274C INTT FEE RMS ");
-    // MVTX QA
-    statementQA += (std::get<0>(map_mvtxQA[run]) >= layer0hitthresh && 
-                         std::get<1>(map_mvtxQA[run]) >= layer1hitthresh &&
-                         std::get<2>(map_mvtxQA[run]) >= layer2hitthresh ? 
-                         "\u2705 MVTX Hit Acceptance " : "\u274C MVTX Hit Acceptance ");
-    statementQA += ((run <= 49961 && std::get<6>(map_mvtxQA[run]) <= scaledchi2ndf_good_b49961) ||
-                         (run > 49961 && std::get<6>(map_mvtxQA[run]) <= scaledchi2ndf_good_a49961) ?
-                         "\u2705 MVTX chi2/ndf " : "\u274C MVTX chi2/ndf ");
-    statementQA += ((run <= 49961 && (std::get<4>(map_mvtxQA[run]) / std::get<3>(map_mvtxQA[run])) >= bovera_low_b49961) ||
-                         (run > 49961 && (std::get<4>(map_mvtxQA[run]) / std::get<3>(map_mvtxQA[run])) >= bovera_low_a49961) ?
-                         "\u2705 MVTX B/A ratio " : "\u274C MVTX B/A ratio "); 
-    statementQA += (std::get<3>(map_mvtxQA[run]) >= avgclus_threshold ?
-                         "\u2705 MVTX Run length" : "\u274C MVTX Run length");
-
-
-    // Group runs by their condition results
-    map_allsiliconruns_categories[statementQA].push_back(run);
-    if (statementQA == "\u2705 INTT BCO Diff \u2705 INTT Hit Acceptance \u2705 INTT FEE RMS \u2705 MVTX Hit Acceptance \u2705 MVTX chi2/ndf \u2705 MVTX B/A ratio \u2705 MVTX Run length")
-    {
-      std::get<0>(map_goodsiliconruns[run]) = std::get<1>(map_inttQA[run]);
-      std::get<1>(map_goodsiliconruns[run]) = (std::get<0>(map_mvtxQA[run]) + std::get<1>(map_mvtxQA[run]) + std::get<0>(map_mvtxQA[run]))/3;
-    }
-      
-    std::cout << "Run: " << run << "\n" << statementQA << std::endl;
-
-    f_hit->Close();
-    f_clust->Close();
-    delete f_hit;
-    delete f_clust;
-  }
-
-  
   // Make markdown
-  std::ofstream f_md("README.md");
+  std::ofstream f_md(_markdownfilename);
   if (!f_md.is_open()) 
   {
     std::cerr << "Error: Could not open the file for writing!" << std::endl;
@@ -472,11 +454,12 @@ void siliconQA()
     } 
   }
   f_md.close();
-  
+}
 
-  
+void SiliconQA::WriteDatFiles()
+{
   // Write out .dat file with good runs
-  std::ofstream siliconrunqa("goodruns_silicon.dat");
+  std::ofstream siliconrunqa(_datfilename);
   if (!siliconrunqa.is_open()) 
   {
     std::cerr << "Error: Could not open the file for writing!" << std::endl;
@@ -492,7 +475,7 @@ void siliconQA()
   siliconrunqa.close();
   
   // Write out .dat file with good runs ranked by silicon hit acceptance
-  std::ofstream siliconrunqa_ranked("goodruns_silicon_rankedbyacceptance.dat");
+  std::ofstream siliconrunqa_ranked(_datrankedfilename);
   if (!siliconrunqa_ranked.is_open()) 
   {
     std::cerr << "Error: Could not open the file for writing!" << std::endl;
@@ -514,6 +497,4 @@ void siliconQA()
     }
   }
   siliconrunqa_ranked.close();
-  
-  
 }

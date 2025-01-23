@@ -74,7 +74,7 @@ private:
     // ********************************************** //
 
     // *********** INTT BCO DIFF *********** //
-    int BCO_DIFF_VALUE = 23;
+    int STREAMING_BCO_DIFF_VALUE = 23;
     // ************************************* //
 
     // *********** MVTX CLUSTER QA THRESHOLDS *********** //

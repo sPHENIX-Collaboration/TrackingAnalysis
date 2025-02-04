@@ -275,6 +275,7 @@ void Fun4All_Cosmics(
       i++;
     }
   }
+  NumInputs += i;
     i = 0;
   for (auto iter : tpot_infile)
   {
@@ -317,6 +318,8 @@ void Fun4All_Cosmics(
   
   Mvtx_Clustering();
   Intt_Clustering();
+  
+  Tpc_LaserEventIdentifying();
 
   auto tpcclusterizer = new TpcClusterizer;
   tpcclusterizer->Verbosity(0);
@@ -324,7 +327,6 @@ void Fun4All_Cosmics(
   tpcclusterizer->set_rawdata_reco();
   se->registerSubsystem(tpcclusterizer);
 
-  Tpc_LaserEventIdentifying();
   Micromegas_Clustering();
 
   Tracking_Reco_TrackSeed();
@@ -346,7 +348,8 @@ void Fun4All_Cosmics(
   resid->outfileName(residstring);
   resid->alignment(false);
   resid->clusterTree();
-  resid->hitTree();
+  //resid->hitTree();
+  resid->noEventTree();
   resid->convertSeeds(true);
 
 
@@ -366,7 +369,6 @@ void Fun4All_Cosmics(
 
   if (Enable::QA)
   {
-    se->registerSubsystem(new MvtxClusterQA);
     se->registerSubsystem(new InttClusterQA);
     se->registerSubsystem(new TpcClusterQA);
     se->registerSubsystem(new MicromegasClusterQA);
@@ -374,9 +376,9 @@ void Fun4All_Cosmics(
    
   }
   
-  TString qaname = outfilename + "_qa.root";
+  TString qaname = outfilename + runnumber +"_qa.root";
   std::string qaOutputFileName(qaname.Data());
-  //QAHistManagerDef::saveQARootFile(qaOutputFileName);
+  QAHistManagerDef::saveQARootFile(qaOutputFileName);
   delete se;
   std::cout << "Finished" << std::endl;
   gSystem->Exit(0);

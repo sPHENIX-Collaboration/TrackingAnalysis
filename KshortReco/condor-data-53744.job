@@ -38,7 +38,7 @@ Rank=CPU_Speed
 
 # Used to give jobs a directory with respect to file input 
 # and output.
-Initialdir     = /sphenix/u/xyu3/workarea/PhotonConv/KsNew/background_shape/KshortReconstruction/unlikesign
+Initialdir     = INITIALDIR
 
 # The executable we want to run.
 Executable     = $(Initialdir)/run_ks.sh
@@ -46,7 +46,7 @@ Executable     = $(Initialdir)/run_ks.sh
 Nevent         = 500
 RunNumber      = 53744
 FileName       = clusters_seeds_$(RunNumber)-$(Segment)-$(Index).root_dst.root
-FilePath       = /sphenix/u/xyu3/hftg01/Full_track_DST/Reconstructed/$(RunNumber)/
+FilePath       = FILEPATH
 OutPrefix      = $(Initialdir)/root/clusters_seeds
 StepSize       = 0
 
@@ -76,5 +76,4 @@ concurrency_limits=CONCURRENCY_LIMIT_DEFAULT:1000
 # job.  If a number is placed after the command (i.e. Queue 15)
 # then the job will be submitted N times.  Use the $(Process)
 # macro to make your input/output and log files unique.
-#Queue 7
 Queue Segment Index from $(Initialdir)/$(RunNumber)_seg_id.txt

@@ -12,50 +12,55 @@
 #include <fstream>
 #include <string>
 
-void plot_kshorts_KFP()
+void plot_kshorts_ksreco()
 {
   gStyle->SetOptStat(0);
   gStyle->SetOptFit(1);
 
-  //TCut trcut("track_1_MVTX_nHits>0 && track_1_INTT_nHits>0 && track_2_MVTX_nHits>0 && track_2_INTT_nHits>0 && track_1_IP_xy<0.05 && track_2_IP_xy<0.05 && track_1_pT>0.2 && track_2_pT>0.2 && K_S0_DIRA>0.88 && pow(K_S0_decayLength,2)>0.2 && track_1_track_2_DCA<0.5");
-  TCut trcut("track_1_MVTX_nHits>0 && track_1_INTT_nHits>0 && track_2_MVTX_nHits>0 && track_2_INTT_nHits>0 && track_1_pT>0.2 && track_2_pT>0.2 && K_S0_DIRA>0.88 && pow(K_S0_decayLength,2)>0.2 && track_1_track_2_DCA<0.5");
+  TCut crosscut("crossing1 == crossing2");
 
-  // likesign charge1==charge2
-  // unlikesign charge1!=charge2
-  TChain *ntp_likesign = new TChain("DecayTree");
-  TChain *ntp_unlikesign = new TChain("DecayTree");
+  TCut ptcut("sqrt(px1*px1+py1*py1) > 0.20 && sqrt(px2*px2+py2*py2) > 0.20");
+  
+  TCut paircut("cosThetaReco > 0.88 && (pow(projected_pathlength_x,2)+pow(projected_pathlength_y,2)) > 0.2 && abs(projected_pair_dca) < 0.5");
+  //TCut paircut("cosThetaReco > 0.88 && (pow(projected_pathlength_x,2)+pow(projected_pathlength_y,2)+pow(projected_pathlength_z,2)) > 0.2 && abs(projected_pair_dca) < 0.5");
 
-  //int run = 52911;
+  TCut unlikesign_chargecut("charge1 != charge2");
+  TCut likesign_chargecut("charge1 == charge2");
+
+  TCut unlikesign_trcut = paircut+crosscut+ptcut+unlikesign_chargecut;
+  TCut likesign_trcut = paircut+crosscut+ptcut+likesign_chargecut;
+
+  TChain *ntp = new TChain("ntp_reco_info");
+
   int run = 53744;
 
-  ntp_likesign->Add(Form("/sphenix/u/xyu3/workarea/PhotonConv/KsNew/background_shape/KshortReconstruction/likesign/all%d_kfp.root",run));
-  ntp_unlikesign->Add(Form("/sphenix/u/xyu3/workarea/PhotonConv/KsNew/background_shape/KshortReconstruction/unlikesign/all%d_kfp.root",run));
+  ntp->Add(Form("/sphenix/u/xyu3/workarea/KsReco_sPHENIX/analysis/all%d_ksreco.root",run));
 
   TCanvas *c1 = new TCanvas("c1","quality",50,50,800,800);
   c1->Divide(2,2);
 
   c1->cd(1);
   TH1D *hq = new TH1D("hq","quality",100,0,500);
-  ntp_unlikesign->Draw("track_1_chi2/track_1_nDoF>>hq", trcut);
+  ntp->Draw("quality1>>hq", unlikesign_trcut);
   hq->Draw();
 
   c1->cd(2);
   TH1D *hpdca = new TH1D("hpdca","projected pair DCA",800,-1.0,1.0);
-  ntp_unlikesign->Draw("track_1_track_2_DCA>>hpdca", "track_1_IP_xy<0.05 && track_2_IP_xy<0.05 && track_1_pT<0.2 && track_2_pT<0.2 && K_S0_DIRA>0.9 && K_S0_decayLength>0.5");
+  ntp->Draw("projected_pair_dca>>hpdca", "cosThetaReco > 0.9 && projected_pathlength > 0.5" && crosscut);
   hpdca->Draw();
 
   c1->cd(3);
   TH1D *hcosth = new TH1D("hcosth","cosThetaReco",100,0.5,1);
-  ntp_unlikesign->Draw("K_S0_DIRA>>hcosth", "track_1_IP_xy<0.05 && track_2_IP_xy<0.05 && track_1_pT<0.2 && track_2_pT<0.2 && K_S0_decayLength>0.5");
+  ntp->Draw("cosThetaReco>>hcosth", "projected_pathlength > 0.5" && crosscut);
   hcosth->Draw();
 
   c1->cd(4);
   TH1D *hpath = new TH1D("hpath","projected path length",100,0,10);
-  ntp_unlikesign->Draw("K_S0_decayLength>>hpath", "track_1_IP_xy<0.05 && track_2_IP_xy<0.05 && track_1_pT<0.2 && track_2_pT<0.2 && K_S0_DIRA>0.9");
+  ntp->Draw("projected_pathlength>>hpath", "cosThetaReco > 0.9" && crosscut);
   hpath->Draw();
 
   c1->Update();
-  c1->SaveAs("figure/plot1_quality_kfp.pdf");
+  c1->SaveAs("figure/plot1_quality_ksreco.pdf");
 
   TCanvas *c2 = new TCanvas("c2","mass",50,50,400,600);
   c2->Divide(1,2);
@@ -63,13 +68,14 @@ void plot_kshorts_KFP()
   c2->cd(1);
  
   TH1D *hm = new TH1D("hm","invariant mass",60,0.4, 0.6);
-  ntp_unlikesign->Draw("K_S0_mass>>hm",trcut);
+  ntp->Draw("invariant_mass>>hm",unlikesign_trcut);
  
   int binlo = hm->FindBin(0.43);
   int binhi = hm->FindBin(0.54);
 
   TH1D *hmbg = new TH1D("hmbg","mass background",60,0.4, 0.6);
-  ntp_likesign->Draw("K_S0_mass>>hmbg", trcut);
+  ntp->Draw("invariant_mass>>hmbg", likesign_trcut);
+
 
   std::cout <<  "fg " <<  hm->Integral(binlo, binhi) << " bgd " << hmbg->Integral(binlo, binhi) << " net signal " <<  hm->Integral(binlo, binhi) -  hmbg->Integral(binlo, binhi) << std::endl;
 
@@ -78,10 +84,6 @@ void plot_kshorts_KFP()
   hmbg->SetLineWidth(2.0);
   hm->SetLineWidth(2.0);
 
-  hm->SetMaximum(hm->GetMaximum() > hmbg->GetMaximum() ? hm->GetMaximum() : hmbg->GetMaximum());
-  hm->SetMinimum(hm->GetMinimum() < hmbg->GetMinimum() ? hm->GetMinimum() : hmbg->GetMinimum());
-
-  //hm->Scale(hmbg->Integral()/hm->Integral());
  
   hm->DrawCopy();  
   hmbg->DrawCopy("same");  
@@ -121,63 +123,65 @@ void plot_kshorts_KFP()
   one->Draw();
 
   c2->Update();
-  c2->SaveAs("figure/plot2_mass_KFP.pdf");
+  c2->SaveAs("figure/plot2_mass_ksreco.pdf");
 
   TCanvas *c3 = new TCanvas("c3","rapidity",250,150,800,400);
   c3->Divide(3,2);
 
   c3->cd(1);
   TH1D *hrap = new TH1D("hrap","rapidity",100,-1.5, 1.5);
-  ntp_unlikesign->Draw("K_S0_rapidity>>hrap",trcut);
+  ntp->Draw("rapidity>>hrap",unlikesign_trcut);
   hrap->Draw();  
 
   c3->cd(2);
   TH2D *hphi = new TH2D("hphi","phi",400,-3.5, 3.5,400, -3.5, 3.5);
-  ntp_unlikesign->Draw("track_1_phi:track_2_phi>>hphi",trcut);
+  ntp->Draw("phi1:phi2>>hphi",unlikesign_trcut);
   hphi->Draw();  
 
   c3->cd(3);
-  TH1D *hcr = new TH1D("hcr","crossing1",600, -200, 400);
-  ntp_unlikesign->Draw("track_1_bunch_crossing>>hcr",trcut);
+  gPad->SetLogy(1);
+  TH1D *hcr = new TH1D("hcr","crossing1",800, -200, 600);
+  ntp->Draw("crossing1>>hcr",unlikesign_trcut);
   hcr->Draw();  
 
   c3->cd(4);
+  gPad->SetLogy(0);
   TH2D *hpcar = new TH2D("hpcar","DCA vs rapidity",50, -1.5, 1.5, 30, -1.0, 1.0);
-  ntp_unlikesign->Draw("track_1_track_2_DCA:track_1_pseudorapidity>>hpcar",trcut && "track_1_bunch_crossing !=0 && K_S0_mass > 0.43 && K_S0_mass < 0.55");
+  ntp->Draw("projected_pair_dca:eta1>>hpcar",unlikesign_trcut && "crossing1 !=0 && invariant_mass > 0.43 && invariant_mass < 0.55");
   hpcar->Draw("colz");  
 
   c3->cd(5);
   TH2D *hpcac = new TH2D("hpcac","DCA vs crossing",50, -100, 100,30, -1.0, 1.0);
-  ntp_unlikesign->Draw("track_1_track_2_DCA:track_1_bunch_crossing>>hpcac",trcut && "track_1_bunch_crossing != 0 && K_S0_mass > 0.43 && K_S0_mass < 0.55");
+  ntp->Draw("projected_pair_dca:crossing1>>hpcac",unlikesign_trcut && "crossing1 != 0 && invariant_mass > 0.43 && invariant_mass < 0.55");
   hpcac->Draw("colz");  
 
   c3->cd(6);
   TH2D *hpcap = new TH2D("hpcap","DCA vs pathlength",50, 0, 4,30, -1.0, 1.0);
-  ntp_unlikesign->Draw("track_1_track_2_DCA:K_S0_decayLength>>hpcap",trcut && "K_S0_mass > 0.43 && K_S0_mass < 0.55");
+  ntp->Draw("projected_pair_dca:projected_pathlength>>hpcap",unlikesign_trcut && "invariant_mass > 0.43 && invariant_mass < 0.55");
   hpcap->Draw("colz");  
 
   c3->Update();
-  c3->SaveAs("figure/plot3_rapidity_kfp.pdf");
+  c3->SaveAs("figure/plot3_rapidity_ksreco.pdf");
 
   TCanvas *c4 = new TCanvas("c4","momentum",150,50,600,600);
   c4->Divide(2,2); 
   c4->cd(1);
   TH2D *hpt = new TH2D("hpt","pT1 vs pT2",100, 0, 2,100, 0, 2.0);
-  ntp_unlikesign->Draw("track_1_pT:track_2_pT>>hpt",trcut && "K_S0_mass > 0.43 && K_S0_mass < 0.55");
+  ntp->Draw("sqrt(px1*px1+py1*py1):sqrt(px2*px2+py2*py2)>>hpt",unlikesign_trcut && "invariant_mass > 0.43 && invariant_mass < 0.55");
   hpt->Draw("colz");  
 
   c4->cd(2);
   TH1D *hmom = new TH1D("hmom","Ks momentum",100, 0, 3);
-  ntp_unlikesign->Draw("K_S0_p>>hmom",trcut && "K_S0_mass > 0.43 && K_S0_mass < 0.55");
+  ntp->Draw("sqrt(pow(projected_mom1_x + projected_mom2_x, 2) + pow(projected_mom1_y + projected_mom2_y, 2) + pow(projected_mom1_z + projected_mom2_z, 2))>>hmom",unlikesign_trcut && "invariant_mass > 0.43 && invariant_mass < 0.55");
   hmom->Draw("colz");  
 
   c4->cd(3);
   TH1D *hpks = new TH1D("hpks","Ks pT",100, 0, 3.0);
-  ntp_unlikesign->Draw("K_S0_pT>>hpks",trcut && "K_S0_mass > 0.43 && K_S0_mass < 0.55");
+  ntp->Draw("invariant_pt>>hpks",unlikesign_trcut && "invariant_mass > 0.43 && invariant_mass < 0.55");
   hpks->Draw();  
 
   c4->Update();
-  c4->SaveAs("figure/plot4_momentum_kfp.pdf");
+  c4->SaveAs("figure/plot4_momentum_ksreco.pdf");
 
 
 

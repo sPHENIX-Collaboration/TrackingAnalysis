@@ -41,19 +41,18 @@ Rank=CPU_Speed
 Initialdir     = INITIALDIR
 
 # The executable we want to run.
-Executable     = $(Initialdir)/run_clusterdst.sh
+Executable     = $(Initialdir)/run_rawhitdst.sh
 
 Nevent         = 500
 RunNumber      = 53744
-FileName       = DST_TRKR_CLUSTER_run2pp_ana461_2024p009_v001-$INT(RunNumber,%08d)-$INT(Segment,%05d).root
-FilePath       = /sphenix/lustre01/sphnxpro/production/run2pp/physics/ana461_2024p009_v001/DST_TRKR_CLUSTER/run_00053700_00053800/dst/
+FileList       = filelist/$(RunNumber)/rawhit_$INT(Segment,%05d).list
 OutDir         = OUTDIR
 OutPrefix      = clusters_seeds
 StepSize       = 500
 
 # The argument to pass to the executable.
 #tracking firt then calo, only one tracking file
-Arguments      = "$(Nevent) $(FileName) $(FilePath) $(OutDir) $(OutPrefix) $(Index) $(StepSize)"
+Arguments      = "$(Nevent) $(RunNumber) $(Segment) $(FileList) $(OutDir) $(OutPrefix) $(Index) $(StepSize)"
 
 # The job's stdout is sent to this file.
 Output         = $(Initialdir)/log/job-Data-$(RunNumber).$(Segment).$(Index).$(Cluster).$(Process).out

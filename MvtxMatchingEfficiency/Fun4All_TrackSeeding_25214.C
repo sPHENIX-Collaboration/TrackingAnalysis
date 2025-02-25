@@ -56,11 +56,11 @@
  R__LOAD_LIBRARY(libtrackingqa.so)
  R__LOAD_LIBRARY(libmvtxmatchingefficiency.so)
  void Fun4All_TrackSeeding_25214(
-     const int nEvents = 100,
-     const std::string clusterfilename = "DST_TRKR_CLUSTER_run2pp_ana466_2024p012_v001-00053534-00000.root",
-     //const std::string clusterfilename = "DST_TRKR_CLUSTER_run2auau_ana466_2024p012_v001-00054966-00000.root",
-     const std::string dir = "/sphenix/lustre01/sphnxpro/production/run2pp/physics/ana466_2024p012_v001/DST_TRKR_CLUSTER/run_00053500_00053600/dst/",
-     //const std::string dir = "/sphenix/lustre01/sphnxpro/production/run2auau/physics/ana466_2024p012_v001/DST_TRKR_CLUSTER/run_00054900_00055000/dst/",
+     const int nEvents = 25,
+     //const std::string clusterfilename = "DST_TRKR_CLUSTER_run2pp_ana466_2024p012_v001-00053534-00000.root",
+     const std::string clusterfilename = "DST_TRKR_CLUSTER_run2auau_ana466_2024p012_v001-00054966-00000.root",
+     //const std::string dir = "/sphenix/lustre01/sphnxpro/production/run2pp/physics/ana466_2024p012_v001/DST_TRKR_CLUSTER/run_00053500_00053600/dst/",
+     const std::string dir = "/sphenix/lustre01/sphnxpro/production/run2auau/physics/ana466_2024p012_v001/DST_TRKR_CLUSTER/run_00054900_00055000/dst/",
      const std::string outfilename = "clusters_seeds",
      const bool convertSeeds = false,
      const bool doKFParticle = false)
@@ -98,7 +98,7 @@
     * TPC clusters not participating to the ACTS track fit
     */
    G4TRACKING::SC_CALIBMODE = false;
-   TRACKING::pp_mode = true;
+   TRACKING::pp_mode = false;
  
    ACTSGEOM::mvtxMisalignment = 100;
    ACTSGEOM::inttMisalignment = 100.;

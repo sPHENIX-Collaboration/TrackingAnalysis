@@ -21,6 +21,7 @@
 #include <fun4allraw/SingleInttPoolInput.h>
 #include <fun4allraw/SingleMicromegasPoolInput.h>
 #include <fun4allraw/SingleMvtxPoolInput.h>
+#include <fun4allraw/SingleTpcPoolInput.h>
 #include <fun4all/Fun4AllDstInputManager.h>
 #include <fun4all/Fun4AllDstOutputManager.h>
 #include <fun4all/Fun4AllInputManager.h>
@@ -267,10 +268,11 @@ void Fun4All_Cosmics(
     if (isGood(iter))
     {
 
-      SingleTpcTimeFrameInput *tpc_sngl = new SingleTpcTimeFrameInput("TPC_" + to_string(i));
+      auto tpc_sngl = new SingleTpcPoolInput("TPC_" + to_string(i));
 //    tpc_sngl->Verbosity(2);
       //   tpc_sngl->DryRun();
-      tpc_sngl->setHitContainerName("TPCRAWHIT");
+      tpc_sngl->SetBcoRange(5);
+      //tpc_sngl->SetMaxTpcTimeSamples(1024);
       tpc_sngl->AddListFile(iter);
       in->registerStreamingInput(tpc_sngl, InputManagerType::TPC);
       i++;
@@ -322,7 +324,6 @@ void Fun4All_Cosmics(
     {
       auto unpacker = new TpcCombinedRawDataUnpackerDebug;
       unpacker->do_zero_suppression(false);
-      unpacker->doBaselineCorr(TRACKING::tpc_baseline_corr);
       unpacker->Verbosity(0);
       se->registerSubsystem(unpacker);
     }
@@ -360,7 +361,7 @@ void Fun4All_Cosmics(
   resid->outfileName(residstring);
   resid->alignment(false);
   resid->clusterTree();
-  //resid->hitTree();
+  resid->hitTree();
   resid->noEventTree();
   resid->convertSeeds(true);
 

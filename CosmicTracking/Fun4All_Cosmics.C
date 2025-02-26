@@ -199,10 +199,10 @@ void Fun4All_Cosmics(
   CDBInterface *cdb = CDBInterface::instance();
 
   // can use for zero field
-  //double fieldstrength = 0.01;
-  //G4MAGNET::magfield_tracking = "0.01";
-  double fieldstrength = std::numeric_limits<double>::quiet_NaN();
-  bool ConstField = isConstantField(G4MAGNET::magfield_tracking,fieldstrength);
+  double fieldstrength = 0.01;
+  G4MAGNET::magfield_tracking = "0.01";
+  //double fieldstrength = std::numeric_limits<double>::quiet_NaN();
+  //bool ConstField = isConstantField(G4MAGNET::magfield_tracking,fieldstrength);
 
   if(ConstField && fieldstrength < 0.1)
   {

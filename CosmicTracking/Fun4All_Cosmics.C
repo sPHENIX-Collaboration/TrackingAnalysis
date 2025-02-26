@@ -28,6 +28,7 @@
 #include <fun4all/Fun4AllRunNodeInputManager.h>
 #include <fun4all/Fun4AllServer.h>
 
+#include <tpc/TpcCombinedRawDataUnpackerDebug.h>
 #include <phool/recoConsts.h>
 #include <ffamodules/HeadReco.h>
 #include <ffamodules/FlagHandler.h>
@@ -176,8 +177,8 @@ void Fun4All_Cosmics(
   rc->set_StringFlag("CDB_GLOBALTAG", "ProdA_2024");
   
   rc->set_uint64Flag("TIMESTAMP", runnumber);
-  TRACKING::tpc_zero_supp = true;
-  TRACKING::tpc_baseline_corr = true;
+  TRACKING::tpc_zero_supp = false;
+  TRACKING::tpc_baseline_corr = false;
 
 
   TpcReadoutInit( runnumber );
@@ -313,7 +314,18 @@ void Fun4All_Cosmics(
   
   Mvtx_HitUnpacking();
   Intt_HitUnpacking();
-  Tpc_HitUnpacking();
+  if(TRACKING::tpc_zero_supp)
+    {
+      Tpc_HitUnpacking();
+    }
+  else
+    {
+      auto unpacker = new TpcCombinedRawDataUnpackerDebug;
+      unpacker->do_zero_suppression(false);
+      unpacker->doBaselineCorr(TRACKING::tpc_baseline_corr);
+      unpacker->Verbosity(0);
+      se->registerSubsystem(unpacker);
+    }
   Micromegas_HitUnpacking();
   
   Mvtx_Clustering();

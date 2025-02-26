@@ -27,12 +27,14 @@ libtrack_to_calo_la_LIBADD = \
   -lglobalvertex_io \
   -lg4detectors_io \
   -lphparameter \
+  -ldecayfinder_io \
+  -lphhepmc \
   -lkfparticle_sphenix_io \
   -lkfparticle_sphenix
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
+  -isystem$(OFFLINE_MAIN)/include \
   -isystem$(ROOTSYS)/include \
   -DHomogeneousField
 

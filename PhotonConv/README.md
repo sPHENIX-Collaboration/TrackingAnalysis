@@ -37,7 +37,11 @@ condor_submit condor-data-seed-53741.job
 - When job finished, output root file saved in Reconstructed/[runnumber]
 
 - Offline analysis code in analysis/
+
 ``utilities.h``: for const variables, utility functions
+
 ``EoP_kfp.C``: for Track-EMCal matching association, generate a smaller root file
+
 ``plot.C``: for 1D/2D distribution plotting
+
 ``EvtDisplay2D.C``: for event display

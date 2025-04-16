@@ -25,13 +25,14 @@ class TH1I;
 class TH2;
 class TCanvas;
 class TrackSeed;
+class TTree;
 
 class PHCompositeNode;
 
 class MvtxMatchingEfficiency : public SubsysReco
 {
  public:
- MvtxMatchingEfficiency(const std::string &name = "MvtxMatchingEfficiency");
+ MvtxMatchingEfficiency(const std::string &name = "MvtxMatchingEfficiency",const std::string outputfilename = "out.root");
 
   ~MvtxMatchingEfficiency() override = default;
 
@@ -44,15 +45,24 @@ class MvtxMatchingEfficiency : public SubsysReco
 
   private:
 
+  std::string m_outputFileName;
+
+  float pt, eta, phi, frac_p_z, dEdx,residual_l0,residual_l1,residual_l2;
+  int layers, states,nTPC;
+
   int ievent = 0;
-  TH1I *h_seed_match  = nullptr;
   TH1D *h_silicon_match[5] = {nullptr};
   TH2D *h_silicon_match_etaphi[5] = {nullptr};
+  TH1D *h_seed_match[5] = {nullptr};
   TH2D *h_seed_match_etaphi[5] = {nullptr};
   TH1I *h_status[2] = {nullptr};
+  TH1I *h_INTT_time_delta[2] = {nullptr};
 
   TrkrClusterContainer *_cluster_map = nullptr;
   PHG4TpcCylinderGeomContainer *_geom_container{nullptr};
+  ActsGeometry *m_tGeometry = nullptr;
+
+  TTree *tree = nullptr;
 };
 
 #endif  // QA_TRACKING_MVTXMATHINGEFFICIENCY_H_

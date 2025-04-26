@@ -11,16 +11,16 @@ this_dir=`dirname $this_script`
 echo rsyncing from $this_dir
 echo running: $this_script $*
 
-SEG=$1
+SEG1=$1
+SEG2=$2
 
-echo $SEG
+echo $SEG1 $SEG2
 
 source /opt/sphenix/core/bin/sphenix_setup.sh -n new
-source /opt/sphenix/core/bin/setup_local.sh /sphenix/user/jpark4/sPHENIX_software/online_distribution/newbasic/build/
 
 printenv 
 
-root -l -q -b "AnaTpcBco.C(\"${SEG}\",1)"
+root -l -q -b "AnaTpcBco.C(\"${SEG2}\",\"${SEG1}\",1)"
 
 echo all done
 echo "script done"

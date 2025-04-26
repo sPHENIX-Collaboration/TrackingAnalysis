@@ -76,19 +76,25 @@ while true; do
     pdf_file=$(echo "$histoutput" | grep "Info in <TCanvas::Print>" | sed 's/.*pdf file \(.*\) has been created/\1/')
     pdf_full_path=$(pwd)/"$pdf_file"
 
-    email_text="[Analysis] All jobs and analyses for GL1 TPC matching completed for run ${run_number}.
-    Monitor log file saved in monitorlog/hist_${run_number}.log.
-    Efficiency: $efficiency
-    The histogram PDF has been created: $pdf_full_path"
-    echo -e "$email_text" | mail -s "[Analysis] Full Analysis done for run ${run_number}" -a "$pdf_full_path" $EMAIL
+    if [ "$SEND_EMAIL" == "true" ]; then 
+      email_text="[Analysis] All jobs and analyses for GL1 TPC matching completed for run ${run_number}.
+      Monitor log file saved in monitorlog/hist_${run_number}.log.
+      Efficiency: $efficiency
+      The histogram PDF has been created: $pdf_full_path"
+      echo -e "$email_text" | mail -s "[Analysis] Full Analysis done for run ${run_number}" -a "$pdf_full_path" $EMAIL
+    fi
     echo "Email sent with efficiency: $efficiency and attached PDF: $pdf_full_path"
     break
   elif [[ $status -eq 2 ]]; then
-    echo -e "[Analysis] One or more jobs failed for run ${run_number}.\nCheck ${JOB_IDS_FILE} and logs in ${LOG_DIR} for details.." | mail -s "[Analysis] Problems found for condor jobs in run ${run_number}" $EMAIL
+    if [ "$SEND_EMAIL" == "true" ]; then 
+      echo -e "[Analysis] One or more jobs failed for run ${run_number}.\nCheck ${JOB_IDS_FILE} and logs in ${LOG_DIR} for details.." | mail -s "[Analysis] Problems found for condor jobs in run ${run_number}" $EMAIL
+    fi
     break
   else
     if [[ $timeSinceLastComplete -ge 60 ]]; then
-      echo -e "[Analysis] No new completed jobs for run ${run_number} over 1 hour.\nCheck condor details and logs in ${JOB_IDS_FILE} and ${LOG_DIR}." | mail -s "[Analysis] No update jobs for run ${run_number}" $EMAIL
+      if [ "$SEND_EMAIL" == "true" ]; then 
+        echo -e "[Analysis] No new completed jobs for run ${run_number} over 1 hour.\nCheck condor details and logs in ${JOB_IDS_FILE} and ${LOG_DIR}." | mail -s "[Analysis] No update jobs for run ${run_number}" $EMAIL
+      fi
       lastCompletedTime=$(date +%s)
     fi
     echo "Still running! wait another 30 seconds..." 

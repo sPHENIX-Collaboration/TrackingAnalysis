@@ -18,7 +18,6 @@ echo $Run
 echo $SERVER
 
 source /opt/sphenix/core/bin/sphenix_setup.sh -n new
-source /opt/sphenix/core/bin/setup_local.sh /sphenix/user/jpark4/sPHENIX_software/online_distribution/newbasic/build/
 
 printenv 
 

@@ -46,7 +46,7 @@ void drawHist(int runnumber=52462, float ninterval = 10, int ntotal=1000000)
 
   TLegend *l = new TLegend(0.23,0.2,0.5,0.47);
   SetLegendStyle(l);
-  l->SetHeader("Individual servers (00-23)");
+  l->SetHeader("Individual servers");
   l->AddEntry(g_event[0],"ebdc00","l");
   l->AddEntry(g_event[1],"ebdc01","l");
   l->AddEntry((TObject*)0,"...","");
@@ -80,7 +80,8 @@ void drawHist(int runnumber=52462, float ninterval = 10, int ntotal=1000000)
   l->Draw("same");
   l2->Draw("same");
   drawText("#bf{#it{sPHENIX}} Internal",0.56,0.88,1,31);
-  drawText("#sqrt{s} = 200 GeV",0.56,0.82,1,27);
+  drawText("HCal Singles Cosmics",0.56,0.82,1,27);
+  //drawText("#sqrt{s} = 200 GeV",0.56,0.82,1,27);
   drawText(Form("Run %d %s events",runnumber,nevents_label.c_str()),0.534,0.71,1,21);
   drawText("#bf{TPC-GL1 tagging}",0.21,0.78,1,21);
   float toteff = h_event->GetBinContent(3)/h_event->GetBinContent(1);

@@ -9,7 +9,7 @@
 
 using namespace std;
 
-void HistAna(int run = 52345, float ninterval = 0.1, int ntotalentries=-1)
+void HistAna(int run = 60110, float ninterval = 0.1, int ntotalentries=-1)
 {
   std::ifstream file("../utilsout.config");
   if (!file.is_open()) {
@@ -33,6 +33,13 @@ void HistAna(int run = 52345, float ninterval = 0.1, int ntotalentries=-1)
     if(i<10) ifile = std::string("0") + std::to_string(i);
     else ifile = std::to_string(i);
     f[i] = new TFile(Form("%s/rootfiles/output_run%d_ebdc%s.root",outdir.c_str(),run,ifile.c_str()));
+    if (!f[i] || f[i]->IsZombie()) {
+      std::cout << "file doesn't exist or failed to open for " << i << " ... continue" << std::endl;
+      delete f[i]; // optional, clean up
+      f[i] = nullptr;
+      continue;
+    }
+
     tree[i] = (TTree*) f[i]->Get("outputTree");
     tree[i] -> SetBranchAddress("event",&event[i]);
     tree[i] -> SetBranchAddress("ispacket",ispacket[i]);
@@ -129,7 +136,7 @@ void HistAna(int run = 52345, float ninterval = 0.1, int ntotalentries=-1)
       }
     }
     //std::cout << "ok.. nServerMatched : " << nServerMatched << std::endl;
-    if(nServerMatched==24){
+    if(nServerMatched==nFiles){
       nGL1matchedAll++;
       nTotalPass++;
     }

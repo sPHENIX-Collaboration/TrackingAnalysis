@@ -1,25 +1,34 @@
 #!/usr/bin/bash
 
-if [ -z "$1" ]; then
-  echo "no run number argument"
+if [ -z "$1" ] || [ -z "$2" ]; then
+  echo "Usage: $0 <run_type> <run_number>"
   exit 1
 fi
 
-echo "make file for run ${1}...."
-bash make_list.sh physics $1
+run_type=$1
+run_number=$2
+
+echo "make file for run ${run_number} with type ${run_type}..."
+bash make_list.sh "$run_type" "$run_number"
+
 if [ ! -f "tpc.list" ] || [ ! -f "gl1daq.list" ]; then
   echo "Error: tpc.list or gl1daq.list do not exist... Exit the script"
   exit 1
 fi
+echo "Done... files are crated for gl1daq.list, tpc.list"
 
-cp tpc.list queue.list 
-echo "Done... files are crated for gl1daq.list, tpc.list. queue.list used for condor setup"
+
+> queue.list
+while IFS= read -r line; do
+  echo "$run_type $line" >> queue.list
+done < tpc.list
+echo "Done... tpc condor queue.list created for ${run_type}"
 
 echo "....... now running GL1 ......"
 gl1filelist=`cat gl1daq.list` 
 for file in $gl1filelist
 do
-  root -l -q -b "AnaTpcBco.C(\"${file}\",0)"
+  root -l -q -b "AnaTpcBco.C(\"${file}\",\"${run_type}\",0)"
 done
 
 echo "....... now submitting condor for TPC ......"
@@ -34,16 +43,14 @@ cat <<EOL > "$TEMP_FILE"
 Executable  = condor_script.sh
 Universe    = vanilla
 Input       = /dev/null
-Arguments   = \$(filename1)
+Arguments   = \$(filename1) \$(filename2)
 Output      = $LOGDIR/\$(Cluster).\$(Process).out
 Error       = $LOGDIR/\$(Cluster).\$(Process).err
 Log         = $LOGDIR/\$(Cluster).\$(Process).log
 Initialdir  = $INITIALDIR
 PeriodicHold  = (NumJobStarts>=1 && JobStatus == 1)
-concurrency_limits=CONCURRENCY_LIMIT_DEFAULT:100
-job_lease_duration = 3600
-request_memory = 4096MB
-Queue filename1 from queue.list
+request_memory = 8192MB
+Queue filename1 filename2 from queue.list
 EOL
 
 if [[ -f condor.job ]]; then
@@ -64,27 +71,20 @@ echo "------ Condor setup configuration : ------"
 cat condor.job
 echo "------------------------------------------"
 
-job_submission_log="${MONITORLOGDIR}/job_submission_${1}.log"
-job_ids_file="${MONITORLOGDIR}/job_ids_${1}.txt"
-monitor_log="${MONITORLOGDIR}/monitor_${1}.log"
 
-: > "$job_submission_log"
-: > "$job_ids_file"
-: > "$monitor_log"
-
-condor_submit condor.job >> "$job_submission_log"
-CLUSTER_ID=$(grep -oP "submitted to cluster \K\d+" "$job_submission_log")
-NUM_JOBS=$(grep -oP "\d+(?= job\(s\) submitted)" "$job_submission_log")
+condor_submit condor.job > ${MONITORLOGDIR}/job_submission_${run_number}.log
+CLUSTER_ID=$(grep -oP "submitted to cluster \K\d+" ${MONITORLOGDIR}/job_submission_${run_number}.log)
+NUM_JOBS=$(grep -oP "\d+(?= job\(s\) submitted)" ${MONITORLOGDIR}/job_submission_${run_number}.log)
 
 for i in $(seq 0 $(($NUM_JOBS-1))); do
-  echo "$CLUSTER_ID.$i" >> "$job_ids_file"
+  echo "$CLUSTER_ID.$i" >> ${MONITORLOGDIR}/job_ids_${run_number}.txt
 done
 
-echo "------ condor job for run ${1} submitted as : ------"
-cat "$job_submission_log"
+echo "------ condor job for run ${run_number} submitted as : ------"
+cat ${MONITORLOGDIR}/job_submission_${run_number}.log
 echo "----------------------------------------------------"
 
 echo "....... now checking for condor log every 30 seconds ......"
 echo "....... Please wait for notifications ....."
 
-nohup bash monitor_condor_jobs.sh "$job_ids_file" "$LOGDIR" >> "$monitor_log" 2>&1 &
+nohup bash monitor_condor_jobs.sh ${MONITORLOGDIR}/job_ids_${run_number}.txt $LOGDIR > ${MONITORLOGDIR}/monitor_${run_number}.log 2>&1 &

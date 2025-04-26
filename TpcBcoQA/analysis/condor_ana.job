@@ -1,0 +1,12 @@
+Executable  = condor_script.sh
+Universe    = vanilla
+Input       = /dev/null
+Arguments   = $(filename1)
+Arguments   = $(run) $(server)
+Output      = /sphenix/user/jpark4/sPHENIX_software/sPHENIX_PmonTpcBcoCheck/analysis/log/$(Cluster).$(Process).out
+Error       = /sphenix/user/jpark4/sPHENIX_software/sPHENIX_PmonTpcBcoCheck/analysis/log/$(Cluster).$(Process).err
+Log         = /sphenix/user/jpark4/sPHENIX_software/sPHENIX_PmonTpcBcoCheck/analysis/log/$(Cluster).$(Process).log
+Initialdir  = /sphenix/user/jpark4/sPHENIX_software/sPHENIX_PmonTpcBcoCheck/analysis
+PeriodicHold  = (NumJobStarts>=1 && JobStatus == 1)
+request_memory = 4096MB
+Queue run server from queuerun.list

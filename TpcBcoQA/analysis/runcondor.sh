@@ -36,8 +36,7 @@ Error       = $LOGDIR/\$(Cluster).\$(Process).err
 Log         = $LOGDIR/\$(Cluster).\$(Process).log
 Initialdir  = $INITIALDIR
 PeriodicHold  = (NumJobStarts>=1 && JobStatus == 1)
-concurrency_limits=CONCURRENCY_LIMIT_DEFAULT:100
-job_lease_duration = 3600
+request_memory = 4096MB
 Queue run server from queuerun.list
 EOL
 
@@ -59,27 +58,20 @@ echo "------ Condor setup configuration : ------"
 cat condor_ana.job
 echo "------------------------------------------"
 
-job_submission_log="${MONITORLOGDIR}/job_submission_ana_${1}.log"
-job_ids_file="${MONITORLOGDIR}/job_ids_${1}.txt"
-monitor_log="${MONITORLOGDIR}/monitor_${1}.log"
 
-: > "$job_submission_log"
-: > "$job_ids_file"
-: > "$monitor_log"
-
-condor_submit condor_ana.job >> "$job_submission_log"
-CLUSTER_ID=$(grep -oP "submitted to cluster \K\d+" "$job_submission_log")
-NUM_JOBS=$(grep -oP "\d+(?= job\(s\) submitted)" "$job_submission_log")
+condor_submit condor_ana.job > ${MONITORLOGDIR}/job_submission_ana_${1}.log
+CLUSTER_ID=$(grep -oP "submitted to cluster \K\d+" ${MONITORLOGDIR}/job_submission_ana_${1}.log)
+NUM_JOBS=$(grep -oP "\d+(?= job\(s\) submitted)" ${MONITORLOGDIR}/job_submission_ana_${1}.log)
 
 for i in $(seq 0 $(($NUM_JOBS-1))); do
-  echo "$CLUSTER_ID.$i" >> "$job_ids_file"
+  echo "$CLUSTER_ID.$i" >> ${MONITORLOGDIR}/job_ids_${1}.txt
 done
 
 echo "------ condor job for run ${1} submitted as : ------"
-cat "$job_submission_log"
+cat ${MONITORLOGDIR}/job_submission_ana_${1}.log
 echo "----------------------------------------------------"
 
 echo "....... now checking for condor log every 30 seconds ......"
 echo "....... Please wait for notifications ....."
 
-nohup bash ana_monitor_condor_jobs.sh "$job_ids_file" "$LOGDIR" >> "$monitor_log" 2>&1 &
+nohup bash ana_monitor_condor_jobs.sh ${MONITORLOGDIR}/job_ids_${1}.txt $LOGDIR > ${MONITORLOGDIR}/monitor_${1}.log 2>&1 &

@@ -69,15 +69,21 @@ while true; do
 
   if [[ $status -eq 0 ]]; then
     echo "All jobs are done!"
-    echo -e "[BcoDump] All jobs completed for run ${run_number}.\nMonitor log file saved in ${JOB_IDS_FILE}.\nWill do automatic condor submission for analysis.\nPlease wait for the next email.." | mail -s "[BcoDump] Condor Jobs done for run ${run_number}" $EMAIL 
+    if [ "$SEND_EMAIL" == "true" ]; then
+      echo -e "[BcoDump] All jobs completed for run ${run_number}.\nMonitor log file saved in ${JOB_IDS_FILE}.\nWill do automatic condor submission for analysis.\nPlease wait for the next email.." | mail -s "[BcoDump] Condor Jobs done for run ${run_number}" $EMAIL 
+    fi
     nohup bash auto_analysis_condor.sh $run_number > monitorlog/auto_analysis_monitor_${run_number}.log 2>&1 &
     break
   elif [[ $status -eq 2 ]]; then
-    echo -e "[BcoDump] One or more jobs failed for run ${run_number}.\nCheck ${JOB_IDS_FILE} and logs in ${LOG_DIR} for details.." | mail -s "[BcoDump] Problems found for condor jobs in run ${run_number}" $EMAIL
+    if [ "$SEND_EMAIL" == "true" ]; then
+      echo -e "[BcoDump] One or more jobs failed for run ${run_number}.\nCheck ${JOB_IDS_FILE} and logs in ${LOG_DIR} for details.." | mail -s "[BcoDump] Problems found for condor jobs in run ${run_number}" $EMAIL
+    fi
     break
   else
     if [[ $timeSinceLastComplete -ge 60 ]]; then
-      echo -e "[BcoDump] No new completed jobs for run ${run_number} over 1 hour.\nCheck condor details and logs in ${JOB_IDS_FILE} and ${LOG_DIR}." | mail -s "[BcoDump] No update jobs for run ${run_number}" $EMAIL
+      if [ "$SEND_EMAIL" == "true" ]; then 
+        echo -e "[BcoDump] No new completed jobs for run ${run_number} over 1 hour.\nCheck condor details and logs in ${JOB_IDS_FILE} and ${LOG_DIR}." | mail -s "[BcoDump] No update jobs for run ${run_number}" $EMAIL
+      fi
       lastCompletedTime=$(date +%s)
     fi
     echo "Still running! wait another 30 seconds..." 

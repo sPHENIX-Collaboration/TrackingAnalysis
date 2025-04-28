@@ -13,10 +13,10 @@ cd ../../
 
 if [[ $1 == "MVTX" ]]
 then
-    root PlotRatios.C\(\"$1_$2.root\",$2,true\)
+    root PlotRatios.C\(\"output/$runnumber/$1_$2.root\",$2,true\)
 elif [[ $1 == "INTT" ]]
 then
-    root PlotRatios.C\(\"$1_$2.root\",$2,false\)
+    root PlotRatios.C\(\"output/$runnumber/$1_$2.root\",$2,false\)
 else
     echo "wrong detector type, try MVTX or INTT"
 fi

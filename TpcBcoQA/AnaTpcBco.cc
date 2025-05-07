@@ -8,7 +8,6 @@
 #include <pmonitor/pmonitor.h>
 #include <map>
 #include "AnaTpcBco.h"
-#include "tpc_pool.h"
 #include <algorithm>
 #include <fstream>
 
@@ -34,7 +33,6 @@ std::vector<DataEntry> dataEntries;
 const int NTPCPACKETS = 3;
 bool useGL1 = false;
 int runnumber;
-std::map<int, tpc_pool *> pool;
 using namespace std;
  
 TH1F *h_accept;

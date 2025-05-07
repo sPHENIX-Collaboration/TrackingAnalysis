@@ -14,7 +14,7 @@ LDFLAGS = -Wl,--no-as-needed  -L$(ONLINE_MAIN)/lib -L$(OFFLINE_MAIN)/lib -lpmoni
 HDRFILES = $(PACKAGE).h
 LINKFILE = $(PACKAGE)LinkDef.h
 
-ADDITIONAL_SOURCES = tpc_pool.cc 
+ADDITIONAL_SOURCES = 
 ADDITIONAL_LIBS = 
 
 SO = lib$(PACKAGE).so

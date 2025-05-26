@@ -19,40 +19,41 @@ void HistAna(int run = 60110, float ninterval = 0.1, int ntotalentries=-1)
   std::string outdir;
   std::getline(file, outdir);
   outdir = outdir.substr(outdir.find("=") + 1);
-  const int nFiles = 24;
 
-  TFile* f[nFiles];
-  TTree* tree[nFiles];
-  int event[nFiles];
-  bool ispacket[nFiles][2];
-  int nFEE[nFiles][2];
-  long long clock[nFiles];
+  const int nSuffix = 2;
 
-  for(int i=0; i<nFiles; i++){
-    string ifile;
-    if(i<10) ifile = std::string("0") + std::to_string(i);
-    else ifile = std::to_string(i);
-    f[i] = new TFile(Form("%s/rootfiles/output_run%d_ebdc%s.root",outdir.c_str(),run,ifile.c_str()));
-    if (!f[i] || f[i]->IsZombie()) {
-      std::cout << "file doesn't exist or failed to open for " << i << " ... continue" << std::endl;
-      delete f[i]; // optional, clean up
-      f[i] = nullptr;
-      continue;
+  TFile* f[nTotalFiles];
+  TTree* tree[nTotalFiles];
+  int event[nTotalFiles];
+  bool ispacket[nTotalFiles];
+  int nFEE[nTotalFiles];
+  long long clock[nTotalFiles];
+
+  for (int i = 0; i < nFiles; i++) {
+    for (int sfx = 0; sfx < nSuffix; sfx++) {
+      int index = i * nSuffix + sfx;
+      std::string ifile = Form("ebdc%02d_%d", i, sfx);
+      f[index] = new TFile(Form("%s/rootfiles/output_run%d_%s.root", outdir.c_str(), run, ifile.c_str()));
+      if (!f[index] || f[index]->IsZombie()) {
+        std::cout << "file failed to open: " << ifile << std::endl;
+        delete f[index];
+        f[index] = nullptr;
+        continue;
+      }
+      tree[index] = (TTree*) f[index]->Get("outputTree");
+      tree[index] -> SetBranchAddress("event",&event[index]);
+      tree[index] -> SetBranchAddress("ispacket",&ispacket[index]);
+      tree[index] -> SetBranchAddress("nFEE",&nFEE[index]);
+      tree[index] -> SetBranchAddress("clock",&clock[index]);
     }
-
-    tree[i] = (TTree*) f[i]->Get("outputTree");
-    tree[i] -> SetBranchAddress("event",&event[i]);
-    tree[i] -> SetBranchAddress("ispacket",ispacket[i]);
-    tree[i] -> SetBranchAddress("nFEE",nFEE[i]);
-    tree[i] -> SetBranchAddress("clock",&clock[i]);
   }
 
   TFile* wf = new TFile(Form("histfiles/hist_%d_interval%.2fk_tot%d.root",run,ninterval,ntotalentries),"recreate");
   TH1D* h_eff_all = new TH1D("h_eff_all",";;GL1 tagged efficiency",49,0,49);
   TH1D* h_event = new TH1D("h_event",";;",3,0,3);
-  TGraphErrors* g_event[24];
-  TGraphErrors* g_event_fee[24];
-  for(int i=0; i<24;i++){
+  TGraphErrors* g_event[nTotalFiles];
+  TGraphErrors* g_event_fee[nTotalFiles];
+  for(int i=0; i<nTotalFiles;i++){
     g_event[i] = new TGraphErrors();
     g_event[i]->SetName(Form("g_event_server%d",i));
     g_event_fee[i] = new TGraphErrors();
@@ -69,10 +70,10 @@ void HistAna(int run = 60110, float ninterval = 0.1, int ntotalentries=-1)
   int idx = 0;
   int idxfee = 0;
 
-  int nGL1matched[24] = {0};
+  int nGL1matched[nTotalFiles] = {0};
   int nGL1matchedAll=0;
   int nTotalPass=0;
-  int nFEEAvg[24]={0};
+  int nFEEAvg[nTotalFiles]={0};
 
   //int nEntries = 1000000;//tree[0]->GetEntries();
   int nEntries = ntotalentries;
@@ -85,7 +86,7 @@ void HistAna(int run = 60110, float ninterval = 0.1, int ntotalentries=-1)
     if(i>0){
       if(i % interval_fee_events ==0 && fillfeeinfo){
         int nFEEAvgAll =0;
-        for(int k=0; k<nFiles; k++){
+        for(int k=0; k<nTotalFiles; k++){
           float avg_fee = (float) nFEEAvg[k] / interval_fee_events;
           g_event_fee[k]->SetPoint(idxfee,idxfee+0.5,avg_fee);
           g_event_fee[k]->SetPointError(idxfee,0,0);
@@ -103,7 +104,7 @@ void HistAna(int run = 60110, float ninterval = 0.1, int ntotalentries=-1)
     if(i % interval_events ==0){
       std::cout << "begin interval : " << i << " / " << nEntries << " (" << (float) i/nEntries*100. << "%)" << std::endl;
       if(i>0){
-        for(int k=0; k<nFiles; k++){
+        for(int k=0; k<nTotalFiles; k++){
           float eff_interval = (float) nGL1matched[k] / interval_events;
           g_event[k]->SetPoint(idx,idx+0.5,eff_interval);
           g_event[k]->SetPointError(idx,0,0);
@@ -126,17 +127,16 @@ void HistAna(int run = 60110, float ninterval = 0.1, int ntotalentries=-1)
     }
 
     int nServerMatched=0; 
-    for (int j = 0; j < nFiles; j++) {
+    for (int j = 0; j < nTotalFiles; j++) {
       tree[j]->GetEntry(i);
-      if(ispacket[j][0] && ispacket[j][1]){
+      if(ispacket[j]){
         nGL1matched[j]++;
         nServerMatched++;
-        nFEEAvg[j] += nFEE[j][0];
-        nFEEAvg[j] += nFEE[j][1];
+        nFEEAvg[j] = nFEE[j];
       }
     }
     //std::cout << "ok.. nServerMatched : " << nServerMatched << std::endl;
-    if(nServerMatched==nFiles){
+    if(nServerMatched==nTotalFiles){
       nGL1matchedAll++;
       nTotalPass++;
     }
@@ -145,7 +145,7 @@ void HistAna(int run = 60110, float ninterval = 0.1, int ntotalentries=-1)
 
   h_event->SetBinContent(3,nTotalPass);
   wf->cd();
-  for(int i=0; i<nFiles; i++){
+  for(int i=0; i<nTotalFiles; i++){
     g_event[i]->Write();
     g_event_fee[i]->Write();
   }

@@ -7,10 +7,11 @@ if [ -z "$1" ]; then
 fi
 
 runnumber=$1
+runtype=$2
 
 echo "Go to analysis and run auto submission for run $runnumber"
 cd analysis || { echo "cd analysis didn't work... exiting.."; exit 1; }
-bash runcondor.sh $runnumber
+bash runcondor.sh $runnumber $runtype
 
 if [ $? -eq 0]; then
   echo "runcondor script executed successfully"

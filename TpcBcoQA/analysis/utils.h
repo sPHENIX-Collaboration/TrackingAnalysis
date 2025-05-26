@@ -14,8 +14,11 @@ const std::string outputdirectory = OUTPUT_DIR;
 const std::string outputdirectory = "../output/"; 
 #endif
 
-const int TotalNumPackets=2;
+const int TotalNumPackets=1;
+const int nFiles = 24;
+const int nTotalFiles = 48;
 const bool WRITE_TPC_SORTED = true;
+const std::string runtypetext="Dry Run";
 
 struct TpcDataEntry {
   int event;

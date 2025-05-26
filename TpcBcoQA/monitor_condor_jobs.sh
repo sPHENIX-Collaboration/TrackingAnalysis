@@ -3,6 +3,7 @@
 source email.config
 JOB_IDS_FILE=$1
 LOG_DIR=$2
+RUN_TYPE=$3
 
 job_file_basename=$(basename "$JOB_IDS_FILE")
 run_number="${job_file_basename#job_ids_}"
@@ -72,7 +73,7 @@ while true; do
     if [ "$SEND_EMAIL" == "true" ]; then
       echo -e "[BcoDump] All jobs completed for run ${run_number}.\nMonitor log file saved in ${JOB_IDS_FILE}.\nWill do automatic condor submission for analysis.\nPlease wait for the next email.." | mail -s "[BcoDump] Condor Jobs done for run ${run_number}" $EMAIL 
     fi
-    nohup bash auto_analysis_condor.sh $run_number > monitorlog/auto_analysis_monitor_${run_number}.log 2>&1 &
+    nohup bash auto_analysis_condor.sh $run_number ${RUN_TYPE} > monitorlog/auto_analysis_monitor_${run_number}.log 2>&1 &
     break
   elif [[ $status -eq 2 ]]; then
     if [ "$SEND_EMAIL" == "true" ]; then

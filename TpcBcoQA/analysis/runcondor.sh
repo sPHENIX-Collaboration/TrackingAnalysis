@@ -8,9 +8,10 @@ fi
 bash makecombined.sh $1
 output_file="queuerun.list"
 > "$output_file"
-for i in {00..23}
-do
-  echo "$1 $i" >> "$output_file"
+for i in $(seq -w 0 23); do
+  for suffix in 0 1; do
+    echo "$1 ${i}_${suffix}" >> "$output_file"
+  done
 done
 
 echo "-------- queuerun.list : -----------"

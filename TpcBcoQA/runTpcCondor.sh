@@ -87,4 +87,4 @@ echo "----------------------------------------------------"
 echo "....... now checking for condor log every 30 seconds ......"
 echo "....... Please wait for notifications ....."
 
-nohup bash monitor_condor_jobs.sh ${MONITORLOGDIR}/job_ids_${run_number}.txt $LOGDIR > ${MONITORLOGDIR}/monitor_${run_number}.log 2>&1 &
+nohup bash monitor_condor_jobs.sh ${MONITORLOGDIR}/job_ids_${run_number}.txt $LOGDIR ${run_type} > ${MONITORLOGDIR}/monitor_${run_number}.log 2>&1 &

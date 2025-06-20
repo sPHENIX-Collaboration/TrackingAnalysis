@@ -15,7 +15,8 @@ fi
 type=$1
 runnumber=$(printf "%08d" $2)
 
-/bin/ls /sphenix/lustre01/sphnxpro/physics/tpc/${type}/TPC_ebdc*_${type}-${runnumber}-* | xargs -n 1 basename > tpc.list 
+/bin/ls /sphenix/lustre01/sphnxpro/physics/tpc/${type}/TPC_ebdc*-${runnumber}-* | xargs -n 1 basename > tpc.list 
+#/bin/ls /sphenix/lustre01/sphnxpro/physics/tpc/${type}/TPC_ebdc*_${type}-${runnumber}-* | xargs -n 1 basename > tpc.list 
 
 #for i in {0..23}
 #do

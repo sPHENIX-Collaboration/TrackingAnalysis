@@ -51,16 +51,15 @@ int main(int argc, const char * argv[]) {
   int gl1event;
   long long ref_clock;
   long long ref_clock_diff;
-  bool packetfound[2] = {0};
+  bool packetfound =false;
   bool isallpacket = false;
-  int NFoundPackets = 0;
-  int nFEE[2] = {0};
+  int nFEE = 0;
 
   outputTree->Branch("event", &gl1event, "event/I");
   outputTree->Branch("clock", &ref_clock, "clock/L");
   outputTree->Branch("clockdiff", &ref_clock_diff, "clockdiff/L");
-  outputTree->Branch("ispacket", packetfound, "ispacket[2]/O");
-  outputTree->Branch("nFEE",nFEE,"nFEE[2]/I");
+  outputTree->Branch("ispacket", &packetfound, "ispacket/O");
+  outputTree->Branch("nFEE",&nFEE,"nFEE/I");
 
   std::string refFilename = outdir.c_str() + std::string("/combined_gl1daq_RunNumber") + runnum.c_str() + std::string(".txt");
   std::ifstream refFile(refFilename.c_str());
@@ -76,9 +75,8 @@ int main(int argc, const char * argv[]) {
   while (refFile >> gl1event >> ref_clock) {
     ref_clock_diff = (prev_ref_clock !=0 ) ? ref_clock - prev_ref_clock : 0;
     prev_ref_clock = ref_clock;
-    std::fill(std::begin(packetfound), std::end(packetfound), 0);
-    std::fill(std::begin(nFEE), std::end(nFEE), 0);
-    NFoundPackets=0;
+    packetfound = false;
+    nFEE = 0;
 
     bool isprint = false;
     if(count %500000==0){
@@ -96,15 +94,10 @@ int main(int argc, const char * argv[]) {
       }
 
       if (fabs(entry.clock -ref_clock) <5) {
-        int packetindx = entry.packet_id % 10;
-        nFEE[packetindx] = entry.nfees;
-        if(packetfound[packetindx] == false) NFoundPackets++;
-        packetfound[packetindx] = true;
-      }
-
-      if(NFoundPackets == TotalNumPackets){
+        packetfound = true;
+        nFEE = entry.nfees;
         if(isprint) std::cout << "found all packets! break" << std::endl;
-        lastTargetIndex=i;
+        lastTargetIndex = i;
         break;
       }
     }

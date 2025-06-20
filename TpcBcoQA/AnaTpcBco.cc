@@ -149,7 +149,8 @@ void getfilename(const char * filename)
 
   std::size_t gl1_server = filestr.find("gl1daq");
   if (ebdc_server != std::string::npos) {
-    std::string extracted = filestr.substr(ebdc_server, 6);
+    std::size_t end = filestr.find("-000" + run_number_part);
+    std::string extracted = filestr.substr(ebdc_server, end - ebdc_server);
     servernamestr = extracted;
   }
   else if( gl1_server != std::string::npos){

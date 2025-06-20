@@ -13,19 +13,25 @@ else
   exit 1
 fi
 
+raw_totalfilenum=$(grep 'const int nFiles' utils.h | cut -d'=' -f2 | tr -d ' ;')
+totalfilenum=$((raw_totalfilenum-1))
 outdir=${OUTPUT_DIR}
 echo "reading file from $outdir"
-for i in ebdc{00..23}
-do
-  if ls ${outdir}/output_${i}_RunNumber_${1}_segment*.txt 1> /dev/null 2>&1; then
-    ls ${outdir}/output_${i}_RunNumber_${1}_segment*.txt | sort -V | xargs cat > ${outdir}/combined_${i}_RunNumber${1}.txt
-    sleep 0.1
-    rm -rf ${outdir}/output_${i}_RunNumber_${1}_segment*.txt
-  else
-    echo "No files found for ${i} with RunNumber ${1}."
-    exit 1
-  fi
+
+for hostnum in $(seq -w 0 $totalfilenum); do
+  for suffix in 0 1; do
+    prefix="ebdc${hostnum}_${suffix}"
+    if ls ${outdir}/output_${prefix}*RunNumber_${1}_segment*.txt 1> /dev/null 2>&1; then
+      ls ${outdir}/output_${prefix}*RunNumber_${1}_segment*.txt | sort -V | xargs cat > ${outdir}/combined_${prefix}_RunNumber${1}.txt
+      sleep 0.1
+      rm -f ${outdir}/output_${prefix}*RunNumber_${1}_segment*.txt
+    else
+      echo "No files found for ${prefix} with RunNumber ${1}."
+      exit 1
+    fi
+  done
 done
+
 sleep 0.1
 
 if ls ${outdir}/output_gl1daq_RunNumber_${1}_segment*.txt 1> /dev/null 2>&1; then

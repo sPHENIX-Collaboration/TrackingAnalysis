@@ -1,10 +1,11 @@
 #define drawHist_cxx
 #include "/sphenix/user/jpark4/Utility/commonUtility.h"
 #include "/sphenix/user/jpark4/Utility/Style_jaebeom.h"
+#include "utils.h"
 
 using namespace std;
 
-void drawHist(int runnumber=52462, float ninterval = 10, int ntotal=1000000)
+void drawHist(int runnumber=64105, float ninterval = 100, int ntotal=-1)
 {
   const int npackets=48;
   gStyle->SetPalette(kRainBow);
@@ -18,7 +19,6 @@ void drawHist(int runnumber=52462, float ninterval = 10, int ntotal=1000000)
   oss << std::fixed << std::setprecision(1) << ntot << "M";
   std::string nevents_label = oss.str();
 
-  const int nfiles=24;
   Int_t nColors = 100; 
   Double_t stops[] = {0.00, 0.50, 1.00};  
   Double_t red[]   = {1.00, 0.00, 0.00}; 
@@ -30,13 +30,13 @@ void drawHist(int runnumber=52462, float ninterval = 10, int ntotal=1000000)
     colors[i] = TColor::GetColorPalette(i);
   }
 
-  TGraphErrors *g_event[nfiles];
+  TGraphErrors *g_event[nTotalFiles];
   TGraphErrors *g_eff_event_all = (TGraphErrors*) f->Get("g_eff_event_all");
-  for(int i =0;i<nfiles; i++){
+  for(int i =0;i<nTotalFiles; i++){
     g_event[i] = (TGraphErrors*) f->Get(Form("g_event_server%d",i));
-    g_event[i]->SetLineColor(colors[i * nColors / nfiles]);
+    g_event[i]->SetLineColor(colors[i * nColors / nTotalFiles]);
     g_event[i]->SetLineWidth(2);
-    g_event[i]->SetMarkerColor(colors[i * nColors / nfiles]);
+    g_event[i]->SetMarkerColor(colors[i * nColors / nTotalFiles]);
     g_event[i]->SetMarkerSize(1.2);
   }
 
@@ -47,11 +47,11 @@ void drawHist(int runnumber=52462, float ninterval = 10, int ntotal=1000000)
   TLegend *l = new TLegend(0.23,0.2,0.5,0.47);
   SetLegendStyle(l);
   l->SetHeader("Individual servers");
-  l->AddEntry(g_event[0],"ebdc00","l");
-  l->AddEntry(g_event[1],"ebdc01","l");
+  l->AddEntry(g_event[0],"ebdc00_0","l");
+  l->AddEntry(g_event[1],"ebdc00_1","l");
   l->AddEntry((TObject*)0,"...","");
-  l->AddEntry(g_event[22],"ebdc22","l");
-  l->AddEntry(g_event[23],"ebdc23","l");
+  l->AddEntry(g_event[46],"ebdc23_0","l");
+  l->AddEntry(g_event[47],"ebdc23_1","l");
 
   TLegend *l2 = new TLegend(0.57,0.40,0.80,0.49);
   SetLegendStyle(l2);
@@ -73,14 +73,14 @@ void drawHist(int runnumber=52462, float ninterval = 10, int ntotal=1000000)
   g_event[0]->GetXaxis()->SetNdivisions(510);
   g_event[0]->GetYaxis()->SetRangeUser(0.3,1.4);
   g_event[0]->Draw("APL");
-  for(int i =1;i<nfiles; i++){
+  for(int i =1;i<nTotalFiles; i++){
     g_event[i]->Draw("PL same");
   }
   g_eff_event_all->Draw("PL same");
   l->Draw("same");
   l2->Draw("same");
   drawText("#bf{#it{sPHENIX}} Internal",0.56,0.88,1,31);
-  drawText("HCal Singles Cosmics",0.56,0.82,1,27);
+  drawText(runtypetext.c_str(),0.56,0.82,1,27);
   //drawText("#sqrt{s} = 200 GeV",0.56,0.82,1,27);
   drawText(Form("Run %d %s events",runnumber,nevents_label.c_str()),0.534,0.71,1,21);
   drawText("#bf{TPC-GL1 tagging}",0.21,0.78,1,21);

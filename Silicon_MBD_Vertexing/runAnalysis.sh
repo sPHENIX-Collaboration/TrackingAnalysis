@@ -1,7 +1,7 @@
 #!/bin/bash
 
 currentDir=$(pwd)
-outDir=/sphenix/tg/tg01/hf/cdean/Silicon_MBD_Comparisons
+outDir=${currentDir}/Silicon_MBD_Comparisons
 
 nEvents=3000
 

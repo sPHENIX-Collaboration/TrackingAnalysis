@@ -83,7 +83,7 @@ if [ -f ${dataTopDir}/${folders[0]}/outputVTX.root ]; then
   cp $dataTopDir/${folders[2]}/*.pdf ${plotDir}
   cp $dataTopDir/${folders[2]}/*.png ${plotDir}
   
-  #rm -rf $dataTopDir
+  rm -rf $dataTopDir
 else
   exit 1
 fi

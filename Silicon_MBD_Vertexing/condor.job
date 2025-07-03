@@ -6,4 +6,4 @@ request_memory     = 8GB
 Priority           = 20
 job_lease_duration = 3600
 Arguments          = $(run) 
-Queue run from run.list
+Queue run from goodRun.list

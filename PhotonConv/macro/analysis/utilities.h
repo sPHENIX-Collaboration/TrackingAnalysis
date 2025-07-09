@@ -26,7 +26,7 @@ float min_Track_Pt = 0.5;
 float min_EMCal_E = 0.2;
 float min_HCal_E = 0.2;
 
-float emcal_radius = 99;
+float emcal_radius = 102.87;
 //float emcal_radius = 100.70;//(1-(-0.077))*93.5
 //float emcal_radius = 99.1;//(1-(-0.060))*93.5
 float hcal_radius = 177.423;
@@ -174,15 +174,12 @@ const bool doTruthMatching = false;
   std::vector<float> *_ep_pz = 0;
   std::vector<float> *_ep_pz_raw = 0;
   std::vector<float> *_ep_pE = 0;
-  std::vector<float> *_ep_pE_unmoved = 0;
   std::vector<float> *_ep_pT = 0;
   std::vector<float> *_ep_pTErr = 0;
   std::vector<float> *_ep_pT_raw = 0;
-  std::vector<float> *_ep_pT_unmoved = 0;
   std::vector<float> *_ep_p = 0;
   std::vector<float> *_ep_pErr = 0;
   std::vector<float> *_ep_p_raw = 0;
-  std::vector<float> *_ep_p_unmoved = 0;
   std::vector<float> *_ep_pseudorapidity = 0;
   std::vector<float> *_ep_pseudorapidity_raw = 0;
   std::vector<float> *_ep_rapidity = 0;
@@ -236,15 +233,12 @@ const bool doTruthMatching = false;
   std::vector<float> *_em_pz = 0;
   std::vector<float> *_em_pz_raw = 0;
   std::vector<float> *_em_pE = 0;
-  std::vector<float> *_em_pE_unmoved = 0;
   std::vector<float> *_em_pT = 0;
   std::vector<float> *_em_pTErr = 0;
   std::vector<float> *_em_pT_raw = 0;
-  std::vector<float> *_em_pT_unmoved = 0;
   std::vector<float> *_em_p = 0;
   std::vector<float> *_em_pErr = 0;
   std::vector<float> *_em_p_raw = 0;
-  std::vector<float> *_em_p_unmoved = 0;
   std::vector<float> *_em_pseudorapidity = 0;
   std::vector<float> *_em_pseudorapidity_raw = 0;
   std::vector<float> *_em_rapidity = 0;
@@ -558,15 +552,12 @@ void setBranch_kfp(TChain* tree)
   tree->SetBranchAddress("_ep_pz", &_ep_pz);
   tree->SetBranchAddress("_ep_pz_raw", &_ep_pz_raw);
   tree->SetBranchAddress("_ep_pE", &_ep_pE);
-  tree->SetBranchAddress("_ep_pE_unmoved", &_ep_pE_unmoved);
   tree->SetBranchAddress("_ep_pT", &_ep_pT);
   tree->SetBranchAddress("_ep_pTErr", &_ep_pTErr);
   tree->SetBranchAddress("_ep_pT_raw", &_ep_pT_raw);
-  tree->SetBranchAddress("_ep_pT_unmoved", &_ep_pT_unmoved);
   tree->SetBranchAddress("_ep_p", &_ep_p);
   tree->SetBranchAddress("_ep_pErr", &_ep_pErr);
   tree->SetBranchAddress("_ep_p_raw", &_ep_p_raw);
-  tree->SetBranchAddress("_ep_p_unmoved", &_ep_p_unmoved);
   tree->SetBranchAddress("_ep_pseudorapidity", &_ep_pseudorapidity);
   tree->SetBranchAddress("_ep_pseudorapidity_raw", &_ep_pseudorapidity_raw);
   tree->SetBranchAddress("_ep_rapidity", &_ep_rapidity);
@@ -623,15 +614,12 @@ void setBranch_kfp(TChain* tree)
   tree->SetBranchAddress("_em_pz", &_em_pz);
   tree->SetBranchAddress("_em_pz_raw", &_em_pz_raw);
   tree->SetBranchAddress("_em_pE", &_em_pE);
-  tree->SetBranchAddress("_em_pE_unmoved", &_em_pE_unmoved);
   tree->SetBranchAddress("_em_pT", &_em_pT);
   tree->SetBranchAddress("_em_pTErr", &_em_pTErr);
   tree->SetBranchAddress("_em_pT_raw", &_em_pT_raw);
-  tree->SetBranchAddress("_em_pT_unmoved", &_em_pT_unmoved);
   tree->SetBranchAddress("_em_p", &_em_p);
   tree->SetBranchAddress("_em_pErr", &_em_pErr);
   tree->SetBranchAddress("_em_p_raw", &_em_p_raw);
-  tree->SetBranchAddress("_em_p_unmoved", &_em_p_unmoved);
   tree->SetBranchAddress("_em_pseudorapidity", &_em_pseudorapidity);
   tree->SetBranchAddress("_em_pseudorapidity_raw", &_em_pseudorapidity_raw);
   tree->SetBranchAddress("_em_rapidity", &_em_rapidity);
@@ -962,4 +950,19 @@ void buildSV(float ep_pcax, float ep_pcay, float ep_pcaz, float ep_px, float ep_
     ep_phi_new = ep_phi + dphi / 2.;
     em_phi_new = em_phi - dphi / 2.;
   }
+}
+
+float cal_tanAlpha(float px, float py, float pz, float phi)
+{
+  float trackPPhi = -px * std::sin(phi) + py * std::cos(phi);
+  float trackPR = px * std::cos(phi) + py * std::sin(phi);
+  float tanAlpha = -trackPPhi / trackPR;
+  return tanAlpha;
+}
+
+float cal_tanBeta(float px, float py, float pz, float phi)
+{
+  float trackPR = px * std::cos(phi) + py * std::sin(phi);
+  float tanBeta = -pz / trackPR;
+  return tanBeta;
 }

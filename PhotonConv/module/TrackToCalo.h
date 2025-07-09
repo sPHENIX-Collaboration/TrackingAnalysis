@@ -25,6 +25,7 @@
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
 #include <calobase/RawTowerGeomContainer.h>
+#include <tpc/TpcGlobalPositionWrapper.h>
 
 #include <kfparticle_sphenix/KFParticle_sPHENIX.h>
 #include <kfparticle_sphenix/KFParticle_DST.h>
@@ -314,15 +315,12 @@ class TrackToCalo : public SubsysReco
   std::vector<float> _ep_pz;
   std::vector<float> _ep_pz_raw;
   std::vector<float> _ep_pE;
-  std::vector<float> _ep_pE_unmoved;
   std::vector<float> _ep_pT;
   std::vector<float> _ep_pTErr;
   std::vector<float> _ep_pT_raw;
-  std::vector<float> _ep_pT_unmoved;
   std::vector<float> _ep_p;
   std::vector<float> _ep_pErr;
   std::vector<float> _ep_p_raw;
-  std::vector<float> _ep_p_unmoved;
   std::vector<float> _ep_pseudorapidity;
   std::vector<float> _ep_pseudorapidity_raw;
   std::vector<float> _ep_rapidity;
@@ -369,15 +367,12 @@ class TrackToCalo : public SubsysReco
   std::vector<float> _em_pz;
   std::vector<float> _em_pz_raw;
   std::vector<float> _em_pE;
-  std::vector<float> _em_pE_unmoved;
   std::vector<float> _em_pT;
   std::vector<float> _em_pTErr;
   std::vector<float> _em_pT_raw;
-  std::vector<float> _em_pT_unmoved;
   std::vector<float> _em_p;
   std::vector<float> _em_pErr;
   std::vector<float> _em_p_raw;
-  std::vector<float> _em_p_unmoved;
   std::vector<float> _em_pseudorapidity;
   std::vector<float> _em_pseudorapidity_raw;
   std::vector<float> _em_rapidity;
@@ -528,6 +523,7 @@ class TrackToCalo : public SubsysReco
   SvtxTrackEval *trackeval = nullptr;
   SvtxTruthEval *trutheval = nullptr;
   SvtxVertexEval *vertexeval = nullptr;
+  TpcGlobalPositionWrapper m_globalPositionWrapper;
 };
 
 #endif // TRACKTOCALO_H

@@ -40,7 +40,7 @@
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrackMap_v2.h>
-#include <trackbase_historic/SvtxTrackState_v1.h>
+#include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/TrackSeedContainer.h>
 #include <trackbase_historic/TrackSeed.h>
 #include <trackbase_historic/TrackAnalysisUtils.h>
@@ -185,6 +185,8 @@ int TrackCaloMatch::process_event(PHCompositeNode* topNode)
     }
   }
 
+  m_globalPositionWrapper.loadNodes(topNode);
+
   if (!clustersEM)
   {
     clustersEM = findNode::getClass<RawClusterContainer>(topNode, m_RawClusCont_EM_name);
@@ -195,7 +197,7 @@ int TrackCaloMatch::process_event(PHCompositeNode* topNode)
     }
   }
 
-  if(!trkrContainer)
+  if(m_write_evt_display && !trkrContainer)
   {
     trkrContainer = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     if(!trkrContainer)
@@ -339,7 +341,14 @@ int TrackCaloMatch::process_event(PHCompositeNode* topNode)
 
       if(fabs(dphi)<m_dphi_cut && fabs(dz)<m_dz_cut)
       {
-        is_match = true;
+	if (m_write_evt_display==false)
+	{
+          is_match = true;
+	}
+	else if (m_write_evt_display==true && (cluster->get_energy()) / (track->get_p()) > 0.5 && (cluster->get_energy()) / (track->get_p()) < 1.5)
+	{
+	  is_match = true;
+	}
 	if (Verbosity() > 2)
 	{
           std::cout<<"matched tracks!!!"<<std::endl;
@@ -359,6 +368,7 @@ int TrackCaloMatch::process_event(PHCompositeNode* topNode)
     }
   }
 
+  if (Verbosity()>1) {std::cout << "num_matched_pair = " << num_matched_pair << " , m_write_evt_display = " << m_write_evt_display << std::endl;}
   //Set up the event display writer
   std::ofstream outFile;
   if (num_matched_pair>=2 && m_write_evt_display)
@@ -374,10 +384,10 @@ int TrackCaloMatch::process_event(PHCompositeNode* topNode)
     RawClusterContainer::Iterator clusIter_EMC;
 
     // draw EMC clusters towers
-    // without energy cuts
     for (clusIter_EMC = begin_end_EMC.first; clusIter_EMC != begin_end_EMC.second; ++clusIter_EMC)
     {
       const auto cluster = clusIter_EMC->second;
+      if(cluster->get_energy() < 0.2) continue;
 
       RawCluster::TowerConstRange towers = cluster->get_towers();
       RawCluster::TowerConstIterator toweriter;
@@ -429,6 +439,7 @@ int TrackCaloMatch::process_event(PHCompositeNode* topNode)
         auto sclusgx = glob.x();
         auto sclusgy = glob.y();
         auto sclusgz = glob.z();
+	if (fabs(sclusgz)>105) {continue;}
 
         std::ostringstream spts;
         if (firstHits)
@@ -465,6 +476,13 @@ int TrackCaloMatch::process_event(PHCompositeNode* topNode)
       if(!track) continue;
       tpc_seed = track->get_tpc_seed();
 
+      const auto crossing = track->get_crossing();
+      if(crossing == SHRT_MAX)
+      {
+        std::cout << "TrackCaloMatch::process_event - invalid crossing. Track skipped." << std::endl;
+        continue;
+      }
+
       if(tpc_seed)
       {
         for(auto key_iter = tpc_seed->begin_cluster_keys(); key_iter != tpc_seed->end_cluster_keys(); ++key_iter)
@@ -476,7 +494,43 @@ int TrackCaloMatch::process_event(PHCompositeNode* topNode)
             continue;
           }
           Acts::Vector3 global(0., 0., 0.);
-          global = acts_Geometry->getGlobalPosition(cluster_key, trkrCluster);
+          //global = acts_Geometry->getGlobalPosition(cluster_key, trkrCluster);
+	  global = m_globalPositionWrapper.getGlobalPositionDistortionCorrected(cluster_key, trkrCluster, crossing);
+
+          SvtxTrackState* state = nullptr;
+
+          // the track states from the Acts fit are fitted to fully corrected clusters, and are on the surface
+          for (auto state_iter = track->begin_states();
+               state_iter != track->end_states();
+               ++state_iter)
+          {
+            SvtxTrackState* tstate = state_iter->second;
+            auto stateckey = tstate->get_cluskey();
+            if (stateckey == cluster_key)
+            {
+              state = tstate;
+              break;
+            }
+          }
+
+	  int layer = TrkrDefs::getLayer(cluster_key);
+
+          if (!state)
+          {
+            if (Verbosity() > 1)
+            {
+              std::cout << "   no state for cluster " << cluster_key << "  in layer " << layer << std::endl;
+            }
+            continue;
+          }
+
+	  if (Verbosity() > 1)
+          {
+	    std::cout<<"cluster ("<<global[0]<<","<<global[1]<<","<<global[2]<<") , state ("<<state->get_x()<<","<<state->get_y()<<","<<state->get_z()<<")"<<" , p ("<<state->get_px()<<","<<state->get_py()<<","<<state->get_pz()<<")"<<std::endl;
+	  }
+	  global[0] = state->get_x();
+	  global[1] = state->get_y();
+	  global[2] = state->get_z();
 
           std::ostringstream spts;
           if (firstHits)
@@ -579,7 +633,7 @@ bool TrackCaloMatch::checkTrack(SvtxTrack* track)
 //____________________________________________________________________________..
 void TrackCaloMatch::event_file_start(std::ofstream &jason_file_header, const std::string& date, int runid, int evtid)
 {
-    jason_file_header << "{\n    \"EVENT\": {\n        \"runid\": " << runid << ", \n        \"evtid\": " << evtid << ", \n        \"time\": 0, \n        \"type\": \"Collision\", \n        \"s_nn\": 0, \n        \"B\": 3.0,\n        \"pv\": [0,0,0],\n        \"runstats\": [\"sPHENIX Internal\",        \n        \"200 GeV pp\",        \n        \"" << date << ", Run " << runid << "\",        \n        \"Event #" << evtid << "\"]  \n    },\n" << std::endl;
+    jason_file_header << "{\n    \"EVENT\": {\n        \"runid\": " << runid << ", \n        \"evtid\": " << evtid << ", \n        \"time\": 0, \n        \"type\": \"Collision\", \n        \"s_nn\": 0, \n        \"B\": 1.4,\n        \"pv\": [0,0,0],\n        \"runstats\": [\"sPHENIX Internal\",        \n        \"200 GeV pp\",        \n        \"" << date << ", Run " << runid << "\",        \n        \"Event #" << evtid << "\"]  \n    },\n" << std::endl;
 
     jason_file_header << "    \"META\": {\n       \"HITS\": {\n          \"INNERTRACKER\": {\n              \"type\": \"3D\",\n              \"options\": {\n              \"size\": 6.0,\n              \"color\": 16711680\n              } \n          },\n" << std::endl;
     jason_file_header << "          \"TRACKHITS\": {\n              \"type\": \"3D\",\n              \"options\": {\n              \"size\": 2.0,\n              \"transparent\": 0.6,\n              \"color\": 16777215\n              } \n          },\n" << std::endl;

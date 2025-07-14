@@ -13,7 +13,7 @@ echo "Go to analysis and run auto submission for run $runnumber"
 cd analysis || { echo "cd analysis didn't work... exiting.."; exit 1; }
 bash runcondor.sh $runnumber $runtype
 
-if [ $? -eq 0]; then
+if [ $? -eq 0 ]; then
   echo "runcondor script executed successfully"
 else
   echo "Error: smth went wrong"

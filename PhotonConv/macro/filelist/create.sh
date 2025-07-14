@@ -1,3 +1,3 @@
-CreateDstList.pl DST_CALO_run2pp --build ana462 --cdb 2024p010 --version v001 --list run.list
-CreateDstList.pl DST_TRKR_CLUSTER_run2pp --build ana466 --cdb 2024p012 --version v001 --list run.list
-CreateDstList.pl DST_TRKR_SEED_run2pp --build ana468 --cdb 2024p012 --version v002 --list run.list
+CreateDstList.pl DST_CALO --tag ana468_2024p012_v001 --run 53877
+CreateDstList.pl DST_TRKR_CLUSTER_run2pp --tag ana494_2024p021_v001 --run 53877
+CreateDstList.pl DST_TRKR_TRACKS_run2pp --tag ana494_2024p021_v001 --run 53877

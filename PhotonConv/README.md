@@ -11,24 +11,22 @@ make -j 4
 make install
 ```
 
-- Prepare a run list in macro/filelist/run.list, one line one runnumber
-
 - Grab DST file list by using CreateDstList.pl:
 ```
 cd macro/filelist
 ./create.sh
 ```
-Trkr Seed, Trkr Cluster, Calo DST lists are generated
+Trkr Tracks, Trkr Cluster, Calo DST lists are generated
 
 - Sync different types of DST by segment ID
 ```
 ./sync.sh
 ```
-Trkr Seed/Cluster DST 10000 events/segment, Calo DST 100000 events/segment
+Trkr Tracks/Cluster DST 10000 events/segment, Calo DST 50000 events/segment
 
 - Submit jobs in condorJob
 ```
-condor_submit condor-data-seed-53741.job
+condor_submit condor-data-seed-53877.job
 ```
 **Do not forget to change Initialdir!!!**
 
@@ -40,7 +38,7 @@ condor_submit condor-data-seed-53741.job
 
 ``utilities.h``: for const variables, utility functions
 
-``EoP_kfp.C``: for Track-EMCal matching association, generate a smaller root file
+``analysis.C``: for Track-EMCal matching association, generate a smaller root file
 
 ``plot.C``: for 1D/2D distribution plotting
 

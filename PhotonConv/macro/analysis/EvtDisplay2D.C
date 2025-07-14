@@ -149,9 +149,9 @@ void EvtDisplay2D(){
 
   TGraph *gr_clus_rz = new TGraph(vec_cluster_z.size(), vec_cluster_z.data(), vec_cluster_r.data());
   gr_clus_rz->SetTitle(Form("Run %d Event %d;Z [cm];R [cm]",runnumber,eventid));
-  gr_clus_rz->GetXaxis()->SetLimits(-(emcal_radius+10.), (emcal_radius+10.));
+  gr_clus_rz->GetXaxis()->SetLimits(-(emcal_radius+20.), (emcal_radius+20.));
   gr_clus_rz->SetMinimum(20);
-  gr_clus_rz->SetMaximum(emcal_radius+10.);
+  gr_clus_rz->SetMaximum(emcal_radius+20.);
   gr_clus_rz->SetMarkerSize(0.5);
   gr_clus_rz->SetMarkerStyle(20);
   gr_clus_rz->SetMarkerColor(kBlue);

@@ -1,27 +1,40 @@
 #include <filesystem>
 #include "utilities.h"
-#include <sPhenixStyle.C>
+//#include <sPhenixStyle.C>
 
 namespace fs = std::filesystem;
 TVector3 z_direction(0,0,1);
 
-void EoP_kfp()
+void analysis(bool do_unlikesign_likesign=0)
 {
   int verbosity = 0;
 
-  SetsPhenixStyle();
+  //SetsPhenixStyle();
   //gStyle->SetOptStat(0);
 
-  const int nrun=4;
-  int runs[4]={53741,53742,53743,53744};
+  const int nrun=1;
+  int runs[nrun]={53877};
 
   TChain* chain = new TChain("tree_KFP");
-  //for (int i=0; i<nrun; i++) chain->Add(Form("../Reconstructed/%d/clusters_seeds_%d*track2calo_unlikesign.root",runs[i],runs[i]));
-  for (int i=0; i<nrun; i++) chain->Add(Form("../Reconstructed/%d/clusters_seeds_%d*track2calo_likesign.root",runs[i],runs[i]));
+  if (do_unlikesign_likesign==0)
+  {
+    for (int i=0; i<nrun; i++) chain->Add(Form("../Reconstructed/%d/clusters_seeds_%d*track2calo.root",runs[i],runs[i]));
+  }
+  else if (do_unlikesign_likesign==1)
+  {
+    for (int i=0; i<nrun; i++) chain->Add(Form("../Reconstructed/%d/clusters_seeds_%d*track2calo_likesign.root",runs[i],runs[i]));
+  }
   setBranch_kfp(chain);
 
-  //TFile* outputfile = new TFile(Form("./eop_kfp_unlikesign.root"),"recreate");
-  TFile* outputfile = new TFile(Form("./eop_kfp_likesign.root"),"recreate");
+  TFile* outputfile;
+  if (do_unlikesign_likesign==0)
+  {
+    outputfile = new TFile(Form("./eop_kfp_unlikesign.root"),"recreate");
+  }
+  else
+  {
+    outputfile = new TFile(Form("./eop_kfp_likesign.root"),"recreate");
+  }
   TTree* outputtree = new TTree("tree","tree with eop info");
 
   float teop_gamma_mass, teop_gamma_radius;
@@ -49,8 +62,6 @@ void EoP_kfp()
   float teop_track12_distance_2d_corr2;
   float teop_ep_px_raw, teop_ep_py_raw, teop_ep_pz_raw, teop_ep_pt_raw, teop_ep_p_raw, teop_ep_eta_raw, teop_ep_phi_raw;
   float teop_em_px_raw, teop_em_py_raw, teop_em_pz_raw, teop_em_pt_raw, teop_em_p_raw, teop_em_eta_raw, teop_em_phi_raw;
-  float teop_ep_pt_unmoved, teop_ep_p_unmoved, teop_ep_pE_unmoved;
-  float teop_em_pt_unmoved, teop_em_p_unmoved, teop_em_pE_unmoved;
   int teop_ep_charge, teop_ep_crossing;
   int teop_em_charge, teop_em_crossing;
   float teop_ep_mass_1, teop_ep_mass_2, teop_ep_mass_3;
@@ -59,7 +70,6 @@ void EoP_kfp()
   float teop_epemc_dphi, teop_epemc_dz;
   float teop_ememc_dphi, teop_ememc_dz;
   float teop_track12_dca_2d, teop_track12_dca_3d;
-  float teop_eop_ep, teop_eop_em;
   std::vector<float> teop_ep_clus_x, teop_ep_clus_y, teop_ep_clus_z;
   std::vector<float> teop_em_clus_x, teop_em_clus_y, teop_em_clus_z;
   std::vector<float> teop_true_gamma_mass, teop_true_gamma_pE, teop_true_gamma_eta;
@@ -120,8 +130,6 @@ void EoP_kfp()
   outputtree->Branch("_em_p",&teop_em_p,"_em_p/F");
   outputtree->Branch("_ep_p_raw",&teop_ep_p_raw,"_ep_p_raw/F");
   outputtree->Branch("_em_p_raw",&teop_em_p_raw,"_em_p_raw/F");
-  outputtree->Branch("_ep_p_unmoved",&teop_ep_p_unmoved,"_ep_p_unmoved/F");
-  outputtree->Branch("_em_p_unmoved",&teop_em_p_unmoved,"_em_p_unmoved/F");
   outputtree->Branch("_ep_px",&teop_ep_px,"_ep_px/F");
   outputtree->Branch("_em_px",&teop_em_px,"_em_px/F");
   outputtree->Branch("_ep_px_raw",&teop_ep_px_raw,"_ep_px_raw/F");
@@ -138,8 +146,6 @@ void EoP_kfp()
   outputtree->Branch("_em_pt",&teop_em_pt,"_em_pt/F");
   outputtree->Branch("_ep_pt_raw",&teop_ep_pt_raw,"_ep_pt_raw/F");
   outputtree->Branch("_em_pt_raw",&teop_em_pt_raw,"_em_pt_raw/F");
-  outputtree->Branch("_ep_pt_unmoved",&teop_ep_pt_unmoved,"_ep_pt_unmoved/F");
-  outputtree->Branch("_em_pt_unmoved",&teop_em_pt_unmoved,"_em_pt_unmoved/F");
   outputtree->Branch("_ep_eta",&teop_ep_eta,"_ep_eta/F");
   outputtree->Branch("_em_eta",&teop_em_eta,"_em_eta/F");
   outputtree->Branch("_ep_eta_raw",&teop_ep_eta_raw,"_ep_eta_raw/F");
@@ -154,8 +160,6 @@ void EoP_kfp()
   outputtree->Branch("_em_phi_raw",&teop_em_phi_raw,"_em_phi_raw/F");
   outputtree->Branch("_ep_pE",&teop_ep_pE,"_ep_pE/F");
   outputtree->Branch("_em_pE",&teop_em_pE,"_em_pE/F");
-  outputtree->Branch("_ep_pE_unmoved",&teop_ep_pE_unmoved,"_ep_pE_unmoved/F");
-  outputtree->Branch("_em_pE_unmoved",&teop_em_pE_unmoved,"_em_pE_unmoved/F");
   outputtree->Branch("_ep_x",&teop_ep_x,"_ep_x/F");
   outputtree->Branch("_em_x",&teop_em_x,"_em_x/F");
   outputtree->Branch("_ep_y",&teop_ep_y,"_ep_y/F");
@@ -218,8 +222,6 @@ void EoP_kfp()
   outputtree->Branch("_em_clus_y",&teop_em_clus_y);
   outputtree->Branch("_ep_clus_z",&teop_ep_clus_z);
   outputtree->Branch("_em_clus_z",&teop_em_clus_z);
-  outputtree->Branch("_eop_ep",&teop_eop_ep,"_eop_ep/F");
-  outputtree->Branch("_eop_em",&teop_eop_em,"_eop_em/F");
 
   // reco-truth matching by using g4truthinfo / recotruthmap
   outputtree->Branch("_ep_has_truthmatching",&teop_ep_has_truthmatching);
@@ -481,7 +483,7 @@ void EoP_kfp()
         //matching
         //if (dphi>-0.2 && dphi<0.2) // no cut in all
         //if (isInRange(-0.15,dphi,0.15) && isInRange(-10,dz,10))
-        if (isInRange(-0.05,dphi,0.1) && isInRange(-3,dz,5))
+        if (isInRange(-0.00,dphi,0.07) && isInRange(-5,dz,5))
         {
           vec_ep_emcal_matched_index.push_back(iem);
           vec_ep_emcal_matched_e.push_back(_emcal_e->at(iem));
@@ -528,7 +530,7 @@ void EoP_kfp()
         //matching
         //if (dphi>-0.2 && dphi<0.2) // no cut in all
         //if (isInRange(-0.15,dphi,0.15) && isInRange(-10,dz,10))
-        if (isInRange(-0.05,dphi,0.1) && isInRange(-3,dz,5))
+        if (isInRange(-0.02,dphi,0.05) && isInRange(-5,dz,5))
         {
           vec_em_emcal_matched_index.push_back(iem);
           vec_em_emcal_matched_e.push_back(_emcal_e->at(iem));
@@ -643,7 +645,6 @@ void EoP_kfp()
       teop_em_ntpot = _em_ntpot->at(ican);
       teop_ep_p = _ep_p->at(ican);
       teop_ep_p_raw = _ep_p_raw->at(ican);
-      teop_ep_p_unmoved = _ep_p_unmoved->at(ican);
       teop_ep_px = _ep_px->at(ican);
       teop_ep_px_raw = _ep_px_raw->at(ican);
       teop_ep_py = _ep_py->at(ican);
@@ -652,8 +653,6 @@ void EoP_kfp()
       teop_ep_pz_raw = _ep_pz_raw->at(ican);
       teop_ep_pt = _ep_pT->at(ican);
       teop_ep_pt_raw = _ep_pT_raw->at(ican);
-      teop_ep_pt_unmoved = _ep_pT_unmoved->at(ican);
-      teop_ep_pE_unmoved = _ep_pE_unmoved->at(ican);
       teop_ep_eta = _ep_pseudorapidity->at(ican);
       teop_ep_eta_raw = _ep_pseudorapidity_raw->at(ican);
       teop_ep_phi = _ep_phi->at(ican);
@@ -661,7 +660,6 @@ void EoP_kfp()
       teop_ep_pE = _ep_pE->at(ican);
       teop_ep_mass_1 = _ep_mass->at(ican);
       teop_ep_mass_2 = customsqrt( pow(_ep_pE->at(ican),2) - pow(_ep_p->at(ican),2) );
-      teop_ep_mass_3 = customsqrt( pow(_ep_pE_unmoved->at(ican),2) - pow(_ep_p_unmoved->at(ican),2) );
       teop_ep_phi_projemc = cal_phi(_ep_x_emc->at(ican), _ep_y_emc->at(ican));
       teop_ep_x_projemc = _ep_x_emc->at(ican);
       teop_ep_y_projemc = _ep_y_emc->at(ican);
@@ -672,7 +670,6 @@ void EoP_kfp()
 
       teop_em_p = _em_p->at(ican);
       teop_em_p_raw = _em_p_raw->at(ican);
-      teop_em_p_unmoved = _em_p_unmoved->at(ican);
       teop_em_px = _em_px->at(ican);
       teop_em_px_raw = _em_px_raw->at(ican);
       teop_em_py = _em_py->at(ican);
@@ -681,8 +678,6 @@ void EoP_kfp()
       teop_em_pz_raw = _em_pz_raw->at(ican);
       teop_em_pt = _em_pT->at(ican);
       teop_em_pt_raw = _em_pT_raw->at(ican);
-      teop_em_pt_unmoved = _em_pT_unmoved->at(ican);
-      teop_em_pE_unmoved = _em_pE_unmoved->at(ican);
       teop_em_eta = _em_pseudorapidity->at(ican);
       teop_em_eta_raw = _em_pseudorapidity_raw->at(ican);
       teop_em_phi = _em_phi->at(ican);
@@ -690,7 +685,6 @@ void EoP_kfp()
       teop_em_pE = _em_pE->at(ican);
       teop_em_mass_1 = _em_mass->at(ican);
       teop_em_mass_2 = customsqrt( pow(_em_pE->at(ican),2) - pow(_em_p->at(ican),2) );
-      teop_em_mass_3 = customsqrt( pow(_em_pE_unmoved->at(ican),2) - pow(_em_p_unmoved->at(ican),2) );
       teop_em_phi_projemc = cal_phi(_em_x_emc->at(ican), _em_y_emc->at(ican));
       teop_em_x_projemc = _em_x_emc->at(ican);
       teop_em_y_projemc = _em_y_emc->at(ican);
@@ -758,27 +752,6 @@ void EoP_kfp()
       teop_ememc_dz = vec_em_emcal_residual_z.at(em_index);
       teop_track12_dca_2d = _epem_DCA_2d->at(ican);
       teop_track12_dca_3d = _epem_DCA_3d->at(ican);
-
-      float eop_ep = teop_ep_emcal_e / teop_ep_p;
-      float eop_em = teop_em_emcal_e / teop_em_p;
-
-      if (eop_ep > 0.8 && eop_ep < 1.3)
-      {
-        teop_eop_em = eop_em;
-      }
-      else
-      {
-        teop_eop_em = -1;
-      }
-
-      if (eop_em > 0.8 && eop_em < 1.3)
-      {
-        teop_eop_ep = eop_ep;
-      }
-      else
-      {
-        teop_eop_ep = -1;
-      }
 
       if (doTruthMatching)
       {

@@ -5,5 +5,8 @@ PeriodicHold       = (NumJobStarts>=1 && JobStatus == 1)
 request_memory     = 8GB
 Priority           = 20
 job_lease_duration = 3600
+Output          =  /sphenix/user/sphnxpro/htmllogs/MBD_Siliconvertex_$(run).out
+Error           =  /sphenix/user/sphnxpro/htmllogs/MBD_Siliconvertex_$(run).err
+Log             =  /sphenix/user/sphnxpro/htmllogs/MBD_Siliconvertex_$(run).log
 Arguments          = $(run) 
 Queue run from goodRun.list

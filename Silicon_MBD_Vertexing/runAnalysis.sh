@@ -65,9 +65,17 @@ for i in "${!pairs[@]}"; do
 
 done
 
+echo "Running macros"
 root -l -q -b Fun4All_VertexCompare.C\(\"${runNumber}\",\"${dataTopDir}\",${nEvents},true,false,false\)
 root -l -q -b Fun4All_VertexCompare.C\(\"${runNumber}\",\"${dataTopDir}\",${nEvents},false,true,false\)
 root -l -q -b Fun4All_VertexCompare.C\(\"${runNumber}\",\"${dataTopDir}\",${nEvents},false,false,true\)
+
+echo "ls all"
+ls -lrt
+echo "ls folders[0]"
+ls -lrt ${dataTopDir}/${folders[0]}
+echo "ls folders[2]"
+ls -lrt ${dataTopDir}/{$folders[2]}
 
 if [ -f ${dataTopDir}/${folders[0]}/outputVTX.root ]; then
 
@@ -77,7 +85,8 @@ if [ -f ${dataTopDir}/${folders[0]}/outputVTX.root ]; then
   mkdir -p ${plotDir}
   
   root -l -q -b vertexCompare.C\(\"${runNumber}\",\"${dataTopDir}\"\)
-  
+  echo "Copying files to "${plotDir}
+  echo "from webdir "${webDir}
   cp ${webDir}/index.php ${plotDir}
   cp -r ${webDir}/res ${plotDir}
   cp $dataTopDir/${folders[2]}/*.pdf ${plotDir}

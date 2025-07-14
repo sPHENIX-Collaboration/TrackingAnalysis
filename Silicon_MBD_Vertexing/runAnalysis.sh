@@ -71,7 +71,7 @@ root -l -q -b Fun4All_VertexCompare.C\(\"${runNumber}\",\"${dataTopDir}\",${nEve
 
 if [ -f ${dataTopDir}/${folders[0]}/outputVTX.root ]; then
 
-  webDir=/sphenix/WWW/subsystem/offline/Silicon_MBD_Vertex_Comparison
+  webDir=/sphenix/WWW/subsystem/Silicon_MBD_Vertex_Comparison
   plotDir=${webDir}/Run${runNumber}
   
   mkdir -p ${plotDir}

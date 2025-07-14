@@ -1,5 +1,6 @@
 #!/bin/bash
 
+source /opt/sphenix/core/bin/sphenix_setup.sh -n new
 goodRunList=goodRun.list
 partialRunList=partialRun.list
 
@@ -7,7 +8,7 @@ partialRunList=partialRun.list
 defaultRun=68750
 
 #Where is the plot webpage
-webPage=/sphenix/WWW/subsystem/offline/Silicon_MBD_Vertex_Comparison/
+webPage=/sphenix/WWW/subsystem/Silicon_MBD_Vertex_Comparison/
 
 #First, check to see if good run list exists
 if [ -f ${goodRunList} ]; then 

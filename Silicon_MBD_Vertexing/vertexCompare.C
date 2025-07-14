@@ -1,3 +1,8 @@
+#include <TMath.h>
+#include "sPhenixStyle.C"
+
+SetsPhenixStyle();
+
 TGaxis::SetMaxDigits(3);
 
 string plotDir = "./";

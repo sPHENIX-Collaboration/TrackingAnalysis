@@ -18,7 +18,7 @@ const int TotalNumPackets=1;
 const int nFiles = 24;
 const int nTotalFiles = 48;
 const bool WRITE_TPC_SORTED = true;
-const std::string runtypetext="Dry Run";
+const std::string runtypetext="";
 
 struct TpcDataEntry {
   int event;

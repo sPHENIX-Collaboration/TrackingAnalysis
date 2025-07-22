@@ -99,7 +99,6 @@ void PlotRatios(const std::string& infile, const int runnumber, const bool MVTX)
   myText(0.22,0.57,feesll1frac[2]->GetLineColor(),"Felix.Endpoint 1.0");
   myText(0.22,0.51,kBlack,"...");
 
-
   
   TCanvas *can4 = new TCanvas("Fee Strobe BCO Match","Fee Strobe BCO Match",200,200,600,600);
   can4->Divide(3,4);
@@ -261,21 +260,29 @@ void PlotRatios(const std::string& infile, const int runnumber, const bool MVTX)
       float perfee[ninttpackets][14] = {{0}};
       TGraph *grs[ninttpackets];
       std::cout << "intt gl1 " << inttgl1<<std::endl;
+
       for(int i=0; i<ninttpackets; i++)
 	{
 	  name.str("");
 	  name <<"h_InttPoolQA_TagBCOAllFees_Server"<<i;
 	  allfeestagged[i] = ((TH1*)file->Get(name.str().c_str()))->GetEntries();
 	  allfeestagged[i] /= inttgl1;
+	  
 	  float x[14];
 	  for(int j=0; j<14; j++)
 	    {
 	      name.str("");
 	      name << "h_InttPoolQA_TagBCO_server"<<i<<"_fee"<<j;
-	      perfee[i][j] = ((TH1*)file->Get(name.str().c_str()))->GetEntries();
-	
-	      perfee[i][j] /= inttgl1;
+
+	      // Ladder2 of intt4 was disabled from run 67709 due to radiation damage to the readout card (ROC)
+	      // Ignore the ladder
+	      if( !(i == 2 && runnumber > 67709 && j == 4) )
+		{
+		  perfee[i][j] = ((TH1*)file->Get(name.str().c_str()))->GetEntries();
+		  perfee[i][j] /= inttgl1;
+		}
 	      x[j] = j;
+	      
 	    }
 	  name.str("");
 	  name<<"perfeegr"<<i;
@@ -285,9 +292,33 @@ void PlotRatios(const std::string& infile, const int runnumber, const bool MVTX)
       TH1 *packetallfees = new TH1F("inttpacketallfees",";Server;Frac. GL1 Tagged",8,0,8);
       for(int i=0; i<ninttpackets; i++)
 	{
-	  packetallfees->SetBinContent(i+1, allfeestagged[i]);
-	}
+	  // Modification of the matching ratio for intt2 in runs later than 67709
+	  if( i == 2 && runnumber > 67709 )
+	    {
+	      double sum = 0; // sum of packet counts of INTT
+	      int disabled_ladder_counter = 0;
+	      for(int j=0; j<14; j++)
+		{
+		  // perfee is 0 for the disabled ladder, so the counter is incremented
+		  if( perfee[i][j] == 0 )
+		    disabled_ladder_counter++;
 
+		  // Add the packet counts of this ladder to the sum variable. The disabled ladder is taken into account.
+		  sum += perfee[i][j] * inttgl1;
+		}
+
+	      // Packet counts -> Matching fraction
+	      sum = sum / inttgl1 ;
+
+	      // Take average of matching fraction over enabled ladders
+	      double average = sum / (14 - disabled_ladder_counter); 
+	      packetallfees->SetBinContent(i+1, average );
+	    }
+	  else
+	    {
+	      packetallfees->SetBinContent(i+1, allfeestagged[i] );
+	    }
+	}
 
       TCanvas *inttcan1 = new TCanvas("inttcan1","inttcan1",200,200,600,600);
       gStyle->SetOptStat(0);
@@ -313,7 +344,7 @@ void PlotRatios(const std::string& infile, const int runnumber, const bool MVTX)
 	  myText(0.22,0.8,kBlack,felix.str().c_str(),0.07);
 
 	}
-      
+
     }
 
   

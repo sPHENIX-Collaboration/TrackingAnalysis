@@ -487,7 +487,7 @@ void CheckFileTransfer(const std::string& start_date )
   for( const auto runnumber: runnumbers )
   {
 
-    // if( verbosity )
+    if( verbosity )
     { std::cout << "runnumber: " << runnumber << std::endl; }
 
     // create histograms

@@ -531,21 +531,26 @@ void CheckFileTransfer_from_bbox(
 
   }
 }
-
+//
+// start_date
+// date should look like
+// XXXX-XX-XX
+// as in 2025-07-21
+// first_segment_only=true - check only if the 0th segment is transferred
+//
 //_________________________________________________________
-void CheckFileTransfer()
+void CheckFileTransfer(const std::string& date,
+		       const bool first_segment_only = false)
 {
 
   // get list of runs
-  static const std::string start_date = "2025-7-24";
+  static const std::string start_date = date;
   const auto runnumbers = get_runnumbers_from_db( start_date );
 
   // map runnumber with missing subsystems
   std::map<int, subsystem_info_t::list> missing;
   std::map<int, subsystem_info_t::list> missing_first_segment;
 
-  // check only first segments
-  const bool first_segment_only = false;
 
   // set to true to verify if transfered files are effectively on disk
   const bool check_db_consistency = false;
@@ -610,7 +615,7 @@ void CheckFileTransfer()
     runnumber_set_t complete_runs;
     std::copy_if( runnumbers.begin(), runnumbers.end(), std::inserter(complete_runs, complete_runs.end()),
       [&missing]( const int& runnumber ) { return !missing.contains(runnumber); } );
-    std::cout << "complete runs (all segments): " << complete_runs << std::endl << std::endl;
+    std::cout << "Complete runs (all segments): " << complete_runs << std::endl << std::endl;
 
     // get list of incomplete runs
     runnumber_set_t incomplete_runs;
@@ -623,7 +628,7 @@ void CheckFileTransfer()
   runnumber_set_t complete_runs_first_segment;
   std::copy_if( runnumbers.begin(), runnumbers.end(), std::inserter(complete_runs_first_segment, complete_runs_first_segment.end()),
     [&missing_first_segment]( const int& runnumber ) { return !missing_first_segment.contains(runnumber); } );
-  std::cout << "complete runs (first segment): " << complete_runs_first_segment << std::endl << std::endl;
+  std::cout << "Complete runs (first segment): " << complete_runs_first_segment << std::endl << std::endl;
 
   // get list of incomplete runs (first segment)
   runnumber_set_t incomplete_runs_first_segment;

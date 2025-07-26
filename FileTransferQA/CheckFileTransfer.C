@@ -241,6 +241,19 @@ std::pair<int,int> get_run_segment( const std::string& filename )
 }
 
 //_________________________________________________________
+// get raw data file extension for a given subsystem
+std::string get_extension( const subsystem_info_t& subsystem = default_subsystem)
+{
+  if( subsystem.subsystem == "TPC" || subsystem.subsystem == "TPOT" || subsystem.subsystem == "INTT" || subsystem.subsystem == "MVTX" )
+  {
+    return ".evt";
+  } else {
+    return ".prdf";
+  }
+}
+
+//_________________________________________________________
+// get raw data base filename for a given subsystem
 std::string get_basefilename( const subsystem_info_t& subsystem = default_subsystem, const std::string& runtype = default_runtype )
 {
   // base filename depends on the subsystem type unfortunately
@@ -255,14 +268,29 @@ std::string get_basefilename( const subsystem_info_t& subsystem = default_subsys
 }
 
 //_________________________________________________________
-std::string get_extension( const subsystem_info_t& subsystem = default_subsystem)
+/*
+ * generate the list of expected local filenames for a given runumber, subsystem and run type, up to a given segment number
+ * this is used to find holes in the recorded file lists
+ */
+filename_set_t get_expected_filenames( int runnumber, int max_segment, const subsystem_info_t& subsystem = default_subsystem, const std::string& runtype = default_runtype )
 {
-  if( subsystem.subsystem == "TPC" || subsystem.subsystem == "TPOT" || subsystem.subsystem == "INTT" || subsystem.subsystem == "MVTX" )
+  filename_set_t out;
+  for( int segment; segment < max_segment; ++segment )
   {
-    return ".evt";
-  } else {
-    return ".prdf";
+    if( subsystem.subsystem == "TPC" )
+    {
+      out.insert(subsystem.subsystem+"_"+subsystem.host+"_0_"+runtype+(boost::format("-%08i-%04i.evt")%runnumber%segment).str());
+      out.insert(subsystem.subsystem+"_"+subsystem.host+"_1_"+runtype+(boost::format("-%08i-%04i.evt")%runnumber%segment).str());
+    } else if( subsystem.subsystem == "TPOT" ) {
+      out.insert(subsystem.subsystem+"_"+subsystem.host+"_"+runtype+(boost::format("-%08i-%04i.evt")%runnumber%segment).str());
+    } else if( subsystem.subsystem == "GL1" ) {
+      out.insert(subsystem.subsystem+"_"+runtype+"_"+subsystem.host+"_"+runtype+(boost::format("-%08i-%04i.evt")%runnumber%segment).str());
+    } else {
+      out.insert(runtype+"_"+subsystem.host+"_"+runtype+(boost::format("-%08i-%04i%s")%runnumber%segment%get_extension(subsystem)).str());
+    }
   }
+
+  return out;
 }
 
 //_________________________________________________________

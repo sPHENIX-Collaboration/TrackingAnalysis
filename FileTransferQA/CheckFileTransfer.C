@@ -87,7 +87,38 @@ namespace
     {"MVTX", "MVTX", "mvtx2" },
     {"MVTX", "MVTX", "mvtx3" },
     {"MVTX", "MVTX", "mvtx4" },
-    {"MVTX", "MVTX", "mvtx5" }
+    {"MVTX", "MVTX", "mvtx5" },
+
+    // EMCAL
+    {"emcal", "EMCAL", "seb00" },
+    {"emcal", "EMCAL", "seb01" },
+    {"emcal", "EMCAL", "seb02" },
+    {"emcal", "EMCAL", "seb03" },
+    {"emcal", "EMCAL", "seb04" },
+    {"emcal", "EMCAL", "seb05" },
+    {"emcal", "EMCAL", "seb06" },
+    {"emcal", "EMCAL", "seb07" },
+    {"emcal", "EMCAL", "seb08" },
+    {"emcal", "EMCAL", "seb09" },
+    {"emcal", "EMCAL", "seb10" },
+    {"emcal", "EMCAL", "seb11" },
+    {"emcal", "EMCAL", "seb12" },
+    {"emcal", "EMCAL", "seb13" },
+    {"emcal", "EMCAL", "seb14" },
+    {"emcal", "EMCAL", "seb15" },
+
+    // HCAL
+    {"HCal", "HCAL", "seb16" },
+    {"HCal", "HCAL", "seb17" },
+
+    // MBD
+    {"mbd", "MBD", "seb18" },
+
+    // ZDC
+    {"ZDC", "ZDC", "seb20" },
+
+    // GL1
+    {"GL1", "GL1", "gl1daq" }
   };
 
   //! file information (from DB)
@@ -199,7 +230,7 @@ filename_set_t read_files( const std::string& command )
 std::pair<int,int> get_run_segment( const std::string& filename )
 {
   // get segment number from filename
-  std::regex regex("-0*(\\d+)-(\\d+)\\.evt");
+  std::regex regex("-0*(\\d+)-(\\d+)\\.(evt|prdf)");
   std::smatch match;
   if( std::regex_search(filename, match, regex) )
   {
@@ -216,10 +247,10 @@ std::string get_basefilename( const subsystem_info_t& subsystem = default_subsys
   if( subsystem.subsystem == "TPC" || subsystem.subsystem == "TPOT" )
   {
     return subsystem.subsystem+"_"+subsystem.host+"*_"+runtype;
-  } else if( subsystem.subsystem == "MVTX" || subsystem.subsystem == "INTT" ) {
-    return runtype+"_"+subsystem.host;
+  } else if( subsystem.subsystem == "GL1" ) {
+    return subsystem.subsystem+"_"+runtype+"_"+subsystem.host;
   } else {
-    return {};
+    return runtype+"_"+subsystem.host;
   }
 }
 
@@ -463,7 +494,7 @@ TH1* create_subsytems_histogram( const std::string& name, const std::string& tit
 
   return h;
 }
-//
+
 // start_date
 // date should look like
 // XXXX-XX-XX
@@ -519,7 +550,7 @@ void CheckFileTransfer(const std::string& start_date )
       bool transferred_first_segment = true;
       for( const auto& file_info:daqdb_files )
       {
-        h_ref->Fill(i+1);
+        h_ref->Fill(i);
 
         const bool is_first_segment = (get_run_segment(file_info.filename).second == 0);
 
@@ -545,9 +576,9 @@ void CheckFileTransfer(const std::string& start_date )
         } else {
 
           // fill histograms
-          h_transfered->Fill(i+1);
+          h_transfered->Fill(i);
           if( is_first_segment )
-          { h_transfered_first_segment->Fill(i+1); }
+          { h_transfered_first_segment->Fill(i); }
 
           // increment counters
           ++n_segments_transfered;
@@ -597,7 +628,7 @@ void CheckFileTransfer(const std::string& start_date )
     legend->AddEntry( h_transfered_first_segment.get(), "first segment transfered", "f" );
     legend->Draw();
 
-    // gPad->SetTopMargin(0.01);
+    gPad->SetBottomMargin(0.15);
     gPad->SetLogy();
 
     // summary

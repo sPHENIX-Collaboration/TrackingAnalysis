@@ -501,7 +501,7 @@ TH1* create_subsytems_histogram( const std::string& name, const std::string& tit
 // as in 2025-07-21
 //
 //_________________________________________________________
-void CheckFileTransfer(const std::string& start_date )
+void CheckFileTransfer(const std::string& start_date="2025-07-21")
 {
   // get list of runs
   const auto runnumbers = get_runnumbers_from_db( start_date );

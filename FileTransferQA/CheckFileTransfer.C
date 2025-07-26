@@ -255,6 +255,17 @@ std::string get_basefilename( const subsystem_info_t& subsystem = default_subsys
 }
 
 //_________________________________________________________
+std::string get_extension( const subsystem_info_t& subsystem = default_subsystem)
+{
+  if( subsystem.subsystem == "TPC" || subsystem.subsystem == "TPOT" || subsystem.subsystem == "INTT" || subsystem.subsystem == "MVTX" )
+  {
+    return ".evt";
+  } else {
+    return ".prdf";
+  }
+}
+
+//_________________________________________________________
 std::string get_lustre_filename( const std::string& local_filename,  const subsystem_info_t& subsystem = default_subsystem, const std::string& runtype = default_runtype )
 {
   static const std::string lustre_path( "/sphenix/lustre01/sphnxpro/physics/" );
@@ -280,7 +291,7 @@ filename_set_t get_files_from_bbox(
   if( runnumbers.empty() )
   {
 
-    const std::string file_selection_pattern = path+"/"+get_basefilename(subsystem,runtype)+"-*-*.evt";
+    const std::string file_selection_pattern = path+"/"+get_basefilename(subsystem,runtype)+"-*-*"+get_extension(subsystem);
     const std::string command = ssh_command+" -x 'ls "+file_selection_pattern+"'";
     out.merge(read_files(command));
 
@@ -288,7 +299,7 @@ filename_set_t get_files_from_bbox(
 
     for( const auto& runnumber:runnumbers )
     {
-      const std::string file_selection_pattern = path+"/"+get_basefilename(subsystem,runtype)+(boost::format("-%08i-*.evt")%runnumber).str();
+      const std::string file_selection_pattern = path+"/"+get_basefilename(subsystem,runtype)+(boost::format("-%08i-*%s")%runnumber%get_extension(subsystem).c_str()).str();
       const std::string command = ssh_command+" -x 'ls " + file_selection_pattern + "'";
       out.merge(read_files(command));
     }
@@ -313,7 +324,7 @@ filename_set_t get_files_from_lustre(
   if( runnumbers.empty() )
   {
 
-    const std::string file_selection_pattern = path+"/"+get_basefilename(subsystem,runtype)+"-*-*.evt";
+    const std::string file_selection_pattern = path+"/"+get_basefilename(subsystem,runtype)+"-*-*"+get_extension(subsystem);
     const std::string command = "ls " + file_selection_pattern;
     out.merge(read_files(command));
 
@@ -321,7 +332,7 @@ filename_set_t get_files_from_lustre(
 
     for( const auto& runnumber:runnumbers )
     {
-      const std::string file_selection_pattern = path+"/"+get_basefilename(subsystem,runtype)+(boost::format("-%08i-*.evt")%runnumber).str();
+      const std::string file_selection_pattern = path+"/"+get_basefilename(subsystem,runtype)+(boost::format("-%08i-*%s")%runnumber%get_extension(subsystem).c_str()).str();
 
       if( verbosity )
       { std::cout << "get_files_from_lustre - file_selection_pattern: " << file_selection_pattern << std::endl; }

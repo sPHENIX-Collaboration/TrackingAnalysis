@@ -48,33 +48,60 @@ std::ostream& operator << (std::ostream& o, const subsystem_info_t& subsystem )
 // hardcoded list of all tracking subsystems
 static const subsystem_info_t::list default_subsystems = {
   // TPC subsystems
-  {"tpc", "TPC", "ebdc00" },
-  {"tpc", "TPC", "ebdc01" },
-  {"tpc", "TPC", "ebdc02" },
-  {"tpc", "TPC", "ebdc03" },
-	{"tpc", "TPC", "ebdc04" },
-	{"tpc", "TPC", "ebdc05" },
-	{"tpc", "TPC", "ebdc06" },
-	{"tpc", "TPC", "ebdc07" },
-	{"tpc", "TPC", "ebdc08" },
-	{"tpc", "TPC", "ebdc09" },
-	{"tpc", "TPC", "ebdc10" },
-	{"tpc", "TPC", "ebdc11" },
-	{"tpc", "TPC", "ebdc12" },
-	{"tpc", "TPC", "ebdc13" },
-	{"tpc", "TPC", "ebdc14" },
-	{"tpc", "TPC", "ebdc15" },
-	{"tpc", "TPC", "ebdc16" },
-	{"tpc", "TPC", "ebdc17" },
-	{"tpc", "TPC", "ebdc18" },
-	{"tpc", "TPC", "ebdc19" },
-	{"tpc", "TPC", "ebdc20" },
-	{"tpc", "TPC", "ebdc21" },
-	{"tpc", "TPC", "ebdc22" },
-	{"tpc", "TPC", "ebdc23" },
-	{"tpc", "TPC", "ebdc23" },
+  {"tpc", "TPC", "ebdc00_0" },
+  {"tpc", "TPC", "ebdc01_0" },
+  {"tpc", "TPC", "ebdc02_0" },
+  {"tpc", "TPC", "ebdc03_0" },
+	{"tpc", "TPC", "ebdc04_0" },
+	{"tpc", "TPC", "ebdc05_0" },
+	{"tpc", "TPC", "ebdc06_0" },
+	{"tpc", "TPC", "ebdc07_0" },
+	{"tpc", "TPC", "ebdc08_0" },
+	{"tpc", "TPC", "ebdc09_0" },
+	{"tpc", "TPC", "ebdc10_0" },
+	{"tpc", "TPC", "ebdc11_0" },
+	{"tpc", "TPC", "ebdc12_0" },
+	{"tpc", "TPC", "ebdc13_0" },
+	{"tpc", "TPC", "ebdc14_0" },
+	{"tpc", "TPC", "ebdc15_0" },
+	{"tpc", "TPC", "ebdc16_0" },
+	{"tpc", "TPC", "ebdc17_0" },
+	{"tpc", "TPC", "ebdc18_0" },
+	{"tpc", "TPC", "ebdc19_0" },
+	{"tpc", "TPC", "ebdc20_0" },
+	{"tpc", "TPC", "ebdc21_0" },
+	{"tpc", "TPC", "ebdc22_0" },
+	{"tpc", "TPC", "ebdc23_0" },
+	{"tpc", "TPC", "ebdc23_0" },
 
-	// TPOT subsystems
+  // TPC subsystems
+  {"tpc", "TPC", "ebdc00_1" },
+  {"tpc", "TPC", "ebdc01_1" },
+  {"tpc", "TPC", "ebdc02_1" },
+  {"tpc", "TPC", "ebdc03_1" },
+	{"tpc", "TPC", "ebdc04_1" },
+	{"tpc", "TPC", "ebdc05_1" },
+	{"tpc", "TPC", "ebdc06_1" },
+	{"tpc", "TPC", "ebdc07_1" },
+	{"tpc", "TPC", "ebdc08_1" },
+	{"tpc", "TPC", "ebdc09_1" },
+	{"tpc", "TPC", "ebdc10_1" },
+	{"tpc", "TPC", "ebdc11_1" },
+	{"tpc", "TPC", "ebdc12_1" },
+	{"tpc", "TPC", "ebdc13_1" },
+	{"tpc", "TPC", "ebdc14_1" },
+	{"tpc", "TPC", "ebdc15_1" },
+	{"tpc", "TPC", "ebdc16_1" },
+	{"tpc", "TPC", "ebdc17_1" },
+	{"tpc", "TPC", "ebdc18_1" },
+	{"tpc", "TPC", "ebdc19_1" },
+	{"tpc", "TPC", "ebdc20_1" },
+	{"tpc", "TPC", "ebdc21_1" },
+	{"tpc", "TPC", "ebdc22_1" },
+	{"tpc", "TPC", "ebdc23_1" },
+	{"tpc", "TPC", "ebdc23_1" },
+
+  // TPOT subsystems
 	{"TPOT", "TPOT", "ebdc39" },
 
 	// INTT subsystem
@@ -307,7 +334,7 @@ namespace DBUtils
 
       // create selection, adding host, runtype, and selecting only run3 Au-Au runs
       const std::string selection =
-        "hostname LIKE '%' || '"+subsystem.host+"' || '%' "
+        "filename LIKE '%' || '"+subsystem.host+"' || '%' "
         "AND runtype='"+runtype+"' "
         "AND brtimestamp>'2025-01-01'";
 
@@ -320,7 +347,7 @@ namespace DBUtils
       {
         const std::string selection =
           "run.runnumber = "+std::to_string(runnumber)+
-          " AND hostname LIKE '%' || '"+subsystem.host+"' || '%';";
+          " AND filename LIKE '%' || '"+subsystem.host+"' || '%';";
         out.merge( get_files_from_db(selection) );
       }
 
@@ -374,7 +401,7 @@ namespace Utils
     // base filename depends on the subsystem type unfortunately
     if( subsystem.subsystem == "TPC" || subsystem.subsystem == "TPOT" )
     {
-      return subsystem.subsystem+"_"+subsystem.host+"*_"+runtype;
+      return subsystem.subsystem+"_"+subsystem.host+"_"+runtype;
     } else if( subsystem.subsystem == "GL1" ) {
       return subsystem.subsystem+"_"+runtype+"_"+subsystem.host;
     } else {
@@ -445,11 +472,7 @@ namespace Utils
     filename_set_t out;
     for( int segment=0; segment < max_segment; ++segment )
     {
-      if( subsystem.subsystem == "TPC" )
-      {
-        out.insert(subsystem.subsystem+"_"+subsystem.host+"_0_"+runtype+(boost::format("-%08i-%04i.evt")%runnumber%segment).str());
-        out.insert(subsystem.subsystem+"_"+subsystem.host+"_1_"+runtype+(boost::format("-%08i-%04i.evt")%runnumber%segment).str());
-      } else if( subsystem.subsystem == "TPOT" ) {
+      if( subsystem.subsystem == "TPC" || subsystem.subsystem == "TPOT" ) {
         out.insert(subsystem.subsystem+"_"+subsystem.host+"_"+runtype+(boost::format("-%08i-%04i.evt")%runnumber%segment).str());
       } else if( subsystem.subsystem == "GL1" ) {
         out.insert(subsystem.subsystem+"_"+runtype+"_"+subsystem.host+(boost::format("-%08i-%04i.evt")%runnumber%segment).str());

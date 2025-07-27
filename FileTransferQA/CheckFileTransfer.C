@@ -241,6 +241,14 @@ std::pair<int,int> get_run_segment( const std::string& filename )
 }
 
 //_________________________________________________________
+int get_runnumber( const std::string& filename )
+{ return get_run_segment(filename).first; }
+
+//_________________________________________________________
+int get_segment( const std::string& filename )
+{ return get_run_segment(filename).second; }
+
+//_________________________________________________________
 // get raw data file extension for a given subsystem
 std::string get_extension( const subsystem_info_t& subsystem = default_subsystem)
 {
@@ -275,7 +283,7 @@ std::string get_basefilename( const subsystem_info_t& subsystem = default_subsys
 filename_set_t get_expected_filenames( int runnumber, int max_segment, const subsystem_info_t& subsystem = default_subsystem, const std::string& runtype = default_runtype )
 {
   filename_set_t out;
-  for( int segment; segment < max_segment; ++segment )
+  for( int segment=0; segment < max_segment; ++segment )
   {
     if( subsystem.subsystem == "TPC" )
     {
@@ -284,9 +292,9 @@ filename_set_t get_expected_filenames( int runnumber, int max_segment, const sub
     } else if( subsystem.subsystem == "TPOT" ) {
       out.insert(subsystem.subsystem+"_"+subsystem.host+"_"+runtype+(boost::format("-%08i-%04i.evt")%runnumber%segment).str());
     } else if( subsystem.subsystem == "GL1" ) {
-      out.insert(subsystem.subsystem+"_"+runtype+"_"+subsystem.host+"_"+runtype+(boost::format("-%08i-%04i.evt")%runnumber%segment).str());
+      out.insert(subsystem.subsystem+"_"+runtype+"_"+subsystem.host+(boost::format("-%08i-%04i.evt")%runnumber%segment).str());
     } else {
-      out.insert(runtype+"_"+subsystem.host+"_"+runtype+(boost::format("-%08i-%04i%s")%runnumber%segment%get_extension(subsystem)).str());
+      out.insert(runtype+"_"+subsystem.host+(boost::format("-%08i-%04i%s")%runnumber%segment%get_extension(subsystem)).str());
     }
   }
 
@@ -544,28 +552,39 @@ void CheckFileTransfer(const std::string& start_date="2025-07-21")
 {
   // get list of runs
   const auto runnumbers = get_runnumbers_from_db( start_date );
+  // const runnumber_set_t runnumbers = {71203};
 
   // map runnumber with missing subsystems
   std::map<int, subsystem_info_t::list> missing;
   std::map<int, subsystem_info_t::list> missing_first_segment;
 
+  // runnumbers with completes DB
+  runnumber_set_t incomplete_db_runs;
+  runnumber_set_t complete_db_runs;
+
   // set to true to verify if transfered files are effectively on disk
   const bool check_db_consistency = false;
   fileinfo_set_t inconsistent_files;
 
+  // files missing from DB
+  fileinfo_set_t missing_files_from_db;
+
   // loop over runnumbers
   for( const auto runnumber: runnumbers )
   {
-
     if( verbosity )
     { std::cout << "runnumber: " << runnumber << std::endl; }
 
     // create histograms
+    std::unique_ptr<TH1> h_expected(create_subsytems_histogram( "h_expected", "total number of segments", default_subsystems ) );
     std::unique_ptr<TH1> h_ref(create_subsytems_histogram( "h_ref", "total number of segments", default_subsystems ) );
     std::unique_ptr<TH1> h_transfered(create_subsytems_histogram( "h_transfered", "transfered segments", default_subsystems ) );
     std::unique_ptr<TH1> h_transfered_first_segment(create_subsytems_histogram( "h_first_segment_transfered", "first segment transfered", default_subsystems ) );
 
     // counters
+    unsigned int n_segments_expected = 0;
+    unsigned int n_first_segment_expected = 0;
+
     unsigned int n_segments_total = 0;
     unsigned int n_first_segment_total = 0;
 
@@ -580,17 +599,37 @@ void CheckFileTransfer(const std::string& start_date="2025-07-21")
 
       // get the files from database
       const auto daqdb_files = get_files_from_db( {runnumber}, subsystem );
+      h_ref->Fill(i, daqdb_files.size());
 
       if( verbosity )
-      { std::cout << "subsystem: " << subsystem << " files: " << daqdb_files << std::endl; }
+      { std::cout << "subsystem: " << subsystem << " files: " << daqdb_files << std::endl << std::endl; }
+
+      // do nothing if daqdb_files is empty
+      if( daqdb_files.empty() ) continue;
+
+      // get max segment and expected filenames
+      const auto max_segment = get_segment( std::max_element( daqdb_files.begin(), daqdb_files.end(),
+        []( const fileinfo_t& first, const fileinfo_t& second )
+        { return get_segment(first.filename) < get_segment(second.filename); } )->filename );
+      const auto expected_filenames = get_expected_filenames( runnumber, max_segment+1, subsystem );
+
+      n_segments_expected += expected_filenames.size();
+      n_first_segment_expected += std::count_if( expected_filenames.begin(), expected_filenames.end(),
+        []( const std::string& filename ) { return get_segment(filename)==0; } );
+
+      h_expected->Fill(i, expected_filenames.size());
+
+      // print
+      if( verbosity )
+      { std::cout << "subsystem: " << subsystem << " expected files: " << expected_filenames << std::endl << std::endl; }
+
+      // look for missing filenames in the database
 
       // loop over files check if requested segments have been transfered
       bool transferred = true;
       bool transferred_first_segment = true;
       for( const auto& file_info:daqdb_files )
       {
-        h_ref->Fill(i);
-
         const bool is_first_segment = (get_run_segment(file_info.filename).second == 0);
 
         // increment counters
@@ -632,72 +671,101 @@ void CheckFileTransfer(const std::string& start_date="2025-07-21")
 
     }
 
-    // make canvas and save
-    std::unique_ptr<TCanvas> cv( new TCanvas( "cv", "cv", 1200, 1200 ) );
-
-    cv->Divide(1,2 );
-
-    // adjust pad dimensions
-    cv->GetPad(1)->SetPad(0, 0.3, 1, 1);
-    cv->GetPad(2)->SetPad(0, 0, 1, 0.3);
-
-    // status histogram
-    cv->cd(1);
-    h_ref->SetStats(0);
-    h_ref->SetTitle(Form( "File transfer status for run %i", runnumber ));
-    h_ref->SetFillStyle(1001);
-    h_ref->SetFillColor(kYellow-10);
-    h_ref->SetMinimum(0.5);
-    h_ref->GetXaxis()->SetLabelSize(0.03);
-    h_ref->Draw("h");
-
-    h_transfered->SetFillStyle(1001);
-    h_transfered->SetFillColor(kGreen-8);
-    h_transfered->Draw("h same");
-
-    h_transfered_first_segment->SetFillStyle(1001);
-    h_transfered_first_segment->SetFillColor(kGreen-5);
-    h_transfered_first_segment->Draw("h same");
-
-    // legend
-    auto legend = new TLegend( 0.7, 0.7, 0.95, 0.85, "", "NDC" );
-    legend->SetFillStyle(0);
-    legend->AddEntry( h_ref.get(), "all segments", "f" );
-    legend->AddEntry( h_transfered.get(), "transfered", "f" );
-    legend->AddEntry( h_transfered_first_segment.get(), "first segment transfered", "f" );
-    legend->Draw();
-
-    gPad->SetBottomMargin(0.15);
-    gPad->SetLogy();
-
-    // summary
-    cv->cd(2);
-    auto text = new TPaveText(0.1,0.1,0.9,0.9, "NDC" );
-    text->SetFillColor(0);
-    text->SetFillStyle(0);
-    text->SetBorderSize(0);
-    text->SetTextAlign(11);
-
-    text->AddText( "File transfer summary:" );
-
-    if( n_segments_transfered == n_segments_total )
+    if( n_segments_total == n_segments_expected )
     {
-      text->AddText( Form("Number of files transfered: %i/%i - good",n_segments_transfered,n_segments_total ))->SetTextColor(kGreen+1);
+      complete_db_runs.insert(runnumber);
     } else {
-      text->AddText( Form("Number of files transfered: %i/%i - bad",n_segments_transfered,n_segments_total ))->SetTextColor(kRed+1);
+      incomplete_db_runs.insert(runnumber);
     }
 
-    if( n_first_segment_transfered == n_first_segment_total )
     {
-      text->AddText( Form("Number of first segment files transfered: %i/%i - good",n_first_segment_transfered,n_first_segment_total ))->SetTextColor(kGreen+1);
-    } else {
-      text->AddText( Form("Number of first segment files transfered: %i/%i - bad",n_first_segment_transfered,n_first_segment_total ))->SetTextColor(kRed+1);
+      // make canvas and save
+      std::unique_ptr<TCanvas> cv( new TCanvas( "cv", "cv", 1200, 1200 ) );
+
+      cv->Divide(1,2 );
+
+      // adjust pad dimensions
+      cv->GetPad(1)->SetPad(0, 0.3, 1, 1);
+      cv->GetPad(2)->SetPad(0, 0, 1, 0.3);
+
+      // status histogram
+      cv->cd(1);
+      h_expected->SetStats(0);
+      h_expected->SetTitle(Form( "File transfer status for run %i", runnumber ));
+      h_expected->SetFillStyle(1001);
+      h_expected->SetFillColor(kYellow-10);
+      h_expected->SetMinimum(0.5);
+      h_expected->GetXaxis()->SetLabelSize(0.03);
+      h_expected->Draw("hist");
+
+      h_ref->SetFillStyle(1001);
+      h_ref->SetFillColor(kYellow-4);
+      h_ref->Draw("hist same");
+
+      h_transfered->SetFillStyle(1001);
+      h_transfered->SetFillColor(kGreen-8);
+      h_transfered->Draw("hist same");
+
+      h_transfered_first_segment->SetFillStyle(1001);
+      h_transfered_first_segment->SetFillColor(kGreen-5);
+      h_transfered_first_segment->Draw("hist same");
+
+      // legend
+      auto legend = new TLegend( 0.7, 0.7, 0.95, 0.85, "", "NDC" );
+      legend->SetFillStyle(0);
+      legend->AddEntry( h_expected.get(), "expected files", "f" );
+      legend->AddEntry( h_ref.get(), "files in DB", "f" );
+      legend->AddEntry( h_transfered.get(), "transfered", "f" );
+      legend->AddEntry( h_transfered_first_segment.get(), "first segment transfered", "f" );
+      legend->Draw();
+
+      gPad->SetBottomMargin(0.15);
+      gPad->SetLogy();
+
+      // summary
+      cv->cd(2);
+      std::unique_ptr<TPaveText> text( new TPaveText(0.1,0.1,0.9,0.9, "NDC" ) );
+      text->SetFillColor(0);
+      text->SetFillStyle(0);
+      text->SetBorderSize(0);
+      text->SetTextAlign(11);
+
+      text->AddText( "File transfer summary:" );
+
+      if( n_segments_total == n_segments_expected )
+      {
+        text->AddText( Form("Number of files in db: %i, expected: %i - good",n_segments_total, n_segments_expected ))->SetTextColor(kGreen+1);
+      } else {
+        text->AddText( Form("Number of files in db: %i, expected: %i - bad",n_segments_total, n_segments_expected ))->SetTextColor(kRed+1);
+      }
+
+      if( n_first_segment_total == n_first_segment_expected )
+      {
+        text->AddText( Form("Number of first segment files in db: %i, expected: %i - good",n_first_segment_total, n_first_segment_expected ))->SetTextColor(kGreen+1);
+      } else {
+        text->AddText( Form("Number of first segment files in db: %i, expected: %i - bad",n_first_segment_total, n_first_segment_expected ))->SetTextColor(kRed+1);
+      }
+
+
+      if( n_segments_transfered == n_segments_total )
+      {
+        text->AddText( Form("Number of files transfered: %i/%i - good",n_segments_transfered,n_segments_total ))->SetTextColor(kGreen+1);
+      } else {
+        text->AddText( Form("Number of files transfered: %i/%i - bad",n_segments_transfered,n_segments_total ))->SetTextColor(kRed+1);
+      }
+
+      if( n_first_segment_transfered == n_first_segment_total )
+      {
+        text->AddText( Form("Number of first segment files transfered: %i/%i - good",n_first_segment_transfered,n_first_segment_total ))->SetTextColor(kGreen+1);
+      } else {
+        text->AddText( Form("Number of first segment files transfered: %i/%i - bad",n_first_segment_transfered,n_first_segment_total ))->SetTextColor(kRed+1);
+      }
+
+      text->Draw();
+
+      // save canvas
+      cv->SaveAs( Form("FileTransferQA_0_%i.png", runnumber));
     }
-
-    text->Draw();
-
-    // save canvas
-    cv->SaveAs( Form("FileTransferQA_0_%i.png", runnumber));
 
   }
 
@@ -705,6 +773,12 @@ void CheckFileTransfer(const std::string& start_date="2025-07-21")
   std::cout << std::endl;
   std::cout << "start date: " << start_date << std::endl << std::endl;
   std::cout << "runnumbers: " << runnumbers << std::endl << std::endl;
+
+  // list of runs for which the db seems complete
+  std::cout << "runs with complete db files: " << complete_db_runs << std::endl << std::endl;
+
+  // list of runs for which the db seems complete
+  std::cout << "runs with incomplete db files: " << incomplete_db_runs << std::endl << std::endl;
 
   // get list of fully transfered runs
   runnumber_set_t complete_runs;

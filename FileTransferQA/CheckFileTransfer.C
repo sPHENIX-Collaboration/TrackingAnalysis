@@ -38,12 +38,15 @@ void CheckFileTransfer(const std::string& start_date="2025-07-21")
   runnumber_set_t incomplete_db_runs;
   runnumber_set_t complete_db_runs;
 
+  // set to true to produce QA page
+  const bool generate_qa_page = true;
+
   // set to true to verify if transfered files are effectively on disk
   const bool check_db_consistency = false;
   fileinfo_set_t inconsistent_files;
 
   // files missing from DB
-  fileinfo_set_t missing_files_from_db;
+  filename_set_t missing_files_from_db;
 
   // loop over runnumbers
   for( const auto runnumber: runnumbers )
@@ -99,7 +102,11 @@ void CheckFileTransfer(const std::string& start_date="2025-07-21")
       if( verbosity )
       { std::cout << "subsystem: " << subsystem << " expected files: " << expected_filenames << std::endl << std::endl; }
 
-      // look for missing filenames in the database
+      // look for missing filenames in the database by comparing expected to daqdb files
+      std::copy_if( expected_filenames.begin(), expected_filenames.end(), std::inserter(missing_files_from_db,missing_files_from_db.end()),
+        [&daqdb_files](const std::string& filename ){
+          return std::find_if(daqdb_files.begin(),daqdb_files.end(), [&filename](const fileinfo_t& fileinfo)
+          { return Utils::get_local_filename(fileinfo.filename)==filename; } ) == daqdb_files.end(); });
 
       // loop over files check if requested segments have been transfered
       bool transferred = true;
@@ -154,10 +161,10 @@ void CheckFileTransfer(const std::string& start_date="2025-07-21")
       incomplete_db_runs.insert(runnumber);
     }
 
+    if( generate_qa_page )
     {
       // make canvas and save
       std::unique_ptr<TCanvas> cv( new TCanvas( "cv", "cv", 1200, 1200 ) );
-
       cv->Divide(1,2 );
 
       // adjust pad dimensions
@@ -305,6 +312,9 @@ void CheckFileTransfer(const std::string& start_date="2025-07-21")
       std::cout << "]" << std::endl;
     }
   }
+
+  // print files not found in the database
+  std::cout << "files missing from db: " << missing_files_from_db << std::endl << std::endl;
 
   if( check_db_consistency )
   { std::cout << "files marked as transfered but not found on lustre: " << inconsistent_files << std::endl << std::endl; }

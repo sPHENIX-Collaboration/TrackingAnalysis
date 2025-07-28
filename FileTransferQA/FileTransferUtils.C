@@ -12,10 +12,14 @@
 #include <string>
 
 #include <boost/format.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 
 //! subsystem characterization, used for locating files on disk, db, etc.
 struct subsystem_info_t
 {
+  //! constructor
+  subsystem_info_t() = default;
+
   //! constructor
   subsystem_info_t( const std::string& _path, const std::string& _subsystem, const std::string& _host ):
     path( _path ),
@@ -46,112 +50,113 @@ std::ostream& operator << (std::ostream& o, const subsystem_info_t& subsystem )
 }
 
 // hardcoded list of all tracking subsystems
-static const subsystem_info_t::list default_subsystems = {
+static const subsystem_info_t::list default_subsystems =
+{
   // TPC subsystems
   {"tpc", "TPC", "ebdc00_0" },
   {"tpc", "TPC", "ebdc01_0" },
   {"tpc", "TPC", "ebdc02_0" },
   {"tpc", "TPC", "ebdc03_0" },
-	{"tpc", "TPC", "ebdc04_0" },
-	{"tpc", "TPC", "ebdc05_0" },
-	{"tpc", "TPC", "ebdc06_0" },
-	{"tpc", "TPC", "ebdc07_0" },
-	{"tpc", "TPC", "ebdc08_0" },
-	{"tpc", "TPC", "ebdc09_0" },
-	{"tpc", "TPC", "ebdc10_0" },
-	{"tpc", "TPC", "ebdc11_0" },
-	{"tpc", "TPC", "ebdc12_0" },
-	{"tpc", "TPC", "ebdc13_0" },
-	{"tpc", "TPC", "ebdc14_0" },
-	{"tpc", "TPC", "ebdc15_0" },
-	{"tpc", "TPC", "ebdc16_0" },
-	{"tpc", "TPC", "ebdc17_0" },
-	{"tpc", "TPC", "ebdc18_0" },
-	{"tpc", "TPC", "ebdc19_0" },
-	{"tpc", "TPC", "ebdc20_0" },
-	{"tpc", "TPC", "ebdc21_0" },
-	{"tpc", "TPC", "ebdc22_0" },
-	{"tpc", "TPC", "ebdc23_0" },
-	{"tpc", "TPC", "ebdc23_0" },
+  {"tpc", "TPC", "ebdc04_0" },
+  {"tpc", "TPC", "ebdc05_0" },
+  {"tpc", "TPC", "ebdc06_0" },
+  {"tpc", "TPC", "ebdc07_0" },
+  {"tpc", "TPC", "ebdc08_0" },
+  {"tpc", "TPC", "ebdc09_0" },
+  {"tpc", "TPC", "ebdc10_0" },
+  {"tpc", "TPC", "ebdc11_0" },
+  {"tpc", "TPC", "ebdc12_0" },
+  {"tpc", "TPC", "ebdc13_0" },
+  {"tpc", "TPC", "ebdc14_0" },
+  {"tpc", "TPC", "ebdc15_0" },
+  {"tpc", "TPC", "ebdc16_0" },
+  {"tpc", "TPC", "ebdc17_0" },
+  {"tpc", "TPC", "ebdc18_0" },
+  {"tpc", "TPC", "ebdc19_0" },
+  {"tpc", "TPC", "ebdc20_0" },
+  {"tpc", "TPC", "ebdc21_0" },
+  {"tpc", "TPC", "ebdc22_0" },
+  {"tpc", "TPC", "ebdc23_0" },
+  {"tpc", "TPC", "ebdc23_0" },
 
   // TPC subsystems
   {"tpc", "TPC", "ebdc00_1" },
   {"tpc", "TPC", "ebdc01_1" },
   {"tpc", "TPC", "ebdc02_1" },
   {"tpc", "TPC", "ebdc03_1" },
-	{"tpc", "TPC", "ebdc04_1" },
-	{"tpc", "TPC", "ebdc05_1" },
-	{"tpc", "TPC", "ebdc06_1" },
-	{"tpc", "TPC", "ebdc07_1" },
-	{"tpc", "TPC", "ebdc08_1" },
-	{"tpc", "TPC", "ebdc09_1" },
-	{"tpc", "TPC", "ebdc10_1" },
-	{"tpc", "TPC", "ebdc11_1" },
-	{"tpc", "TPC", "ebdc12_1" },
-	{"tpc", "TPC", "ebdc13_1" },
-	{"tpc", "TPC", "ebdc14_1" },
-	{"tpc", "TPC", "ebdc15_1" },
-	{"tpc", "TPC", "ebdc16_1" },
-	{"tpc", "TPC", "ebdc17_1" },
-	{"tpc", "TPC", "ebdc18_1" },
-	{"tpc", "TPC", "ebdc19_1" },
-	{"tpc", "TPC", "ebdc20_1" },
-	{"tpc", "TPC", "ebdc21_1" },
-	{"tpc", "TPC", "ebdc22_1" },
-	{"tpc", "TPC", "ebdc23_1" },
-	{"tpc", "TPC", "ebdc23_1" },
+  {"tpc", "TPC", "ebdc04_1" },
+  {"tpc", "TPC", "ebdc05_1" },
+  {"tpc", "TPC", "ebdc06_1" },
+  {"tpc", "TPC", "ebdc07_1" },
+  {"tpc", "TPC", "ebdc08_1" },
+  {"tpc", "TPC", "ebdc09_1" },
+  {"tpc", "TPC", "ebdc10_1" },
+  {"tpc", "TPC", "ebdc11_1" },
+  {"tpc", "TPC", "ebdc12_1" },
+  {"tpc", "TPC", "ebdc13_1" },
+  {"tpc", "TPC", "ebdc14_1" },
+  {"tpc", "TPC", "ebdc15_1" },
+  {"tpc", "TPC", "ebdc16_1" },
+  {"tpc", "TPC", "ebdc17_1" },
+  {"tpc", "TPC", "ebdc18_1" },
+  {"tpc", "TPC", "ebdc19_1" },
+  {"tpc", "TPC", "ebdc20_1" },
+  {"tpc", "TPC", "ebdc21_1" },
+  {"tpc", "TPC", "ebdc22_1" },
+  {"tpc", "TPC", "ebdc23_1" },
+  {"tpc", "TPC", "ebdc23_1" },
 
   // TPOT subsystems
-	{"TPOT", "TPOT", "ebdc39" },
+  {"TPOT", "TPOT", "ebdc39" },
 
-	// INTT subsystem
-	{"INTT", "INTT", "intt0" },
-	{"INTT", "INTT", "intt1" },
-	{"INTT", "INTT", "intt2" },
-	{"INTT", "INTT", "intt3" },
-	{"INTT", "INTT", "intt4" },
-	{"INTT", "INTT", "intt5" },
-	{"INTT", "INTT", "intt6" },
-	{"INTT", "INTT", "intt7" },
+  // INTT subsystem
+  {"INTT", "INTT", "intt0" },
+  {"INTT", "INTT", "intt1" },
+  {"INTT", "INTT", "intt2" },
+  {"INTT", "INTT", "intt3" },
+  {"INTT", "INTT", "intt4" },
+  {"INTT", "INTT", "intt5" },
+  {"INTT", "INTT", "intt6" },
+  {"INTT", "INTT", "intt7" },
 
-	// MVTX subsystems
-	{"MVTX", "MVTX", "mvtx0" },
-	{"MVTX", "MVTX", "mvtx1" },
-	{"MVTX", "MVTX", "mvtx2" },
-	{"MVTX", "MVTX", "mvtx3" },
-	{"MVTX", "MVTX", "mvtx4" },
-	{"MVTX", "MVTX", "mvtx5" },
+  // MVTX subsystems
+  {"MVTX", "MVTX", "mvtx0" },
+  {"MVTX", "MVTX", "mvtx1" },
+  {"MVTX", "MVTX", "mvtx2" },
+  {"MVTX", "MVTX", "mvtx3" },
+  {"MVTX", "MVTX", "mvtx4" },
+  {"MVTX", "MVTX", "mvtx5" },
 
-	// EMCAL
-	{"emcal", "EMCAL", "seb00" },
-	{"emcal", "EMCAL", "seb01" },
-	{"emcal", "EMCAL", "seb02" },
-	{"emcal", "EMCAL", "seb03" },
-	{"emcal", "EMCAL", "seb04" },
-	{"emcal", "EMCAL", "seb05" },
-	{"emcal", "EMCAL", "seb06" },
-	{"emcal", "EMCAL", "seb07" },
-	{"emcal", "EMCAL", "seb08" },
-	{"emcal", "EMCAL", "seb09" },
-	{"emcal", "EMCAL", "seb10" },
-	{"emcal", "EMCAL", "seb11" },
-	{"emcal", "EMCAL", "seb12" },
-	{"emcal", "EMCAL", "seb13" },
-	{"emcal", "EMCAL", "seb14" },
-	{"emcal", "EMCAL", "seb15" },
+  // EMCAL
+  {"emcal", "EMCAL", "seb00" },
+  {"emcal", "EMCAL", "seb01" },
+  {"emcal", "EMCAL", "seb02" },
+  {"emcal", "EMCAL", "seb03" },
+  {"emcal", "EMCAL", "seb04" },
+  {"emcal", "EMCAL", "seb05" },
+  {"emcal", "EMCAL", "seb06" },
+  {"emcal", "EMCAL", "seb07" },
+  {"emcal", "EMCAL", "seb08" },
+  {"emcal", "EMCAL", "seb09" },
+  {"emcal", "EMCAL", "seb10" },
+  {"emcal", "EMCAL", "seb11" },
+  {"emcal", "EMCAL", "seb12" },
+  {"emcal", "EMCAL", "seb13" },
+  {"emcal", "EMCAL", "seb14" },
+  {"emcal", "EMCAL", "seb15" },
 
-	// HCAL
-	{"HCal", "HCAL", "seb16" },
-	{"HCal", "HCAL", "seb17" },
+  // HCAL
+  {"HCal", "HCAL", "seb16" },
+  {"HCal", "HCAL", "seb17" },
 
-	// MBD
-	{"mbd", "MBD", "seb18" },
+  // MBD
+  {"mbd", "MBD", "seb18" },
 
-	// ZDC
-	{"ZDC", "ZDC", "seb20" },
+  // ZDC
+  {"ZDC", "ZDC", "seb20" },
 
-	// GL1
-	{"GL1", "GL1", "gl1daq" }
+  // GL1
+  {"GL1", "GL1", "gl1daq" }
 };
 
 //! file information (from DB)
@@ -407,6 +412,39 @@ namespace Utils
     } else {
       return runtype+"_"+subsystem.host;
     }
+  }
+
+  //_________________________________________________________
+  // get sybststem from filename
+  subsystem_info_t get_subsystem( const std::string& filename )
+  {
+    {
+      // TPOT or TPC file
+      // TPC_ebdc23_1_physics-00069746-0036.evt
+      std::regex regex("/([A-Za-z]+)/[A-Za-z]+/([A-Za-z]+)_([A-Za-z0-9]+(:?_0|1)?)_");
+      std::smatch match;
+      if( std::regex_search(filename, match, regex) )
+      { return {match[1], match[2], match[3]}; }
+    }
+
+    {
+      // GL1
+      // /GL1/physics/GL1_physics_gl1daq-00069746-0000.evt
+      std::regex regex("/GL1/[A-Za-z]+/GL1_[A-Za-z]+_([A-Za-z0-9]+)-");
+      std::smatch match;
+      if( std::regex_search(filename, match, regex) )
+      { return {"GL1", "GL1", match[1]}; }
+    }
+
+    {
+      // all other subystems
+      std::regex regex("/([A-Za-z]+)/[A-Za-z]+/[A-Za-z]+_([A-Za-z0-9]+)-");
+      std::smatch match;
+      if( std::regex_search(filename, match, regex) )
+      { return {match[1], boost::to_upper_copy<std::string>(match[1]), match[2]}; }
+    }
+
+    return {};
   }
 
   //_________________________________________________________

@@ -28,7 +28,7 @@ void CheckFileTransfer(const std::string& start_date="2025-07-21")
 {
   // get list of runs
   const auto runnumbers = DBUtils::get_runnumbers_from_db( start_date );
-  // const runnumber_set_t runnumbers = {69746};
+  // const runnumber_set_t runnumbers = {69566, 69567, 69746,71251};
 
   // map runnumber with missing subsystems
   std::map<int, subsystem_info_t::list> missing;
@@ -175,21 +175,21 @@ void CheckFileTransfer(const std::string& start_date="2025-07-21")
       cv->cd(1);
       h_expected->SetStats(0);
       h_expected->SetTitle(Form( "File transfer status for run %i", runnumber ));
-      h_expected->SetFillStyle(1001);
+      h_expected->SetFillStyle(3001);
       h_expected->SetFillColor(kYellow-10);
       h_expected->SetMinimum(0.5);
       h_expected->GetXaxis()->SetLabelSize(0.03);
       h_expected->Draw("hist");
 
-      h_ref->SetFillStyle(1001);
+      h_ref->SetFillStyle(3001);
       h_ref->SetFillColor(kYellow-9);
       h_ref->Draw("hist same");
 
-      h_transfered->SetFillStyle(1001);
+      h_transfered->SetFillStyle(3001);
       h_transfered->SetFillColor(kGreen-8);
       h_transfered->Draw("hist same");
 
-      h_transfered_first_segment->SetFillStyle(1001);
+      h_transfered_first_segment->SetFillStyle(3001);
       h_transfered_first_segment->SetFillColor(kGreen-5);
       h_transfered_first_segment->Draw("hist same");
 

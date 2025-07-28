@@ -77,7 +77,6 @@ static const subsystem_info_t::list default_subsystems =
   {"tpc", "TPC", "ebdc21_0" },
   {"tpc", "TPC", "ebdc22_0" },
   {"tpc", "TPC", "ebdc23_0" },
-  {"tpc", "TPC", "ebdc23_0" },
 
   // TPC subsystems
   {"tpc", "TPC", "ebdc00_1" },
@@ -103,7 +102,6 @@ static const subsystem_info_t::list default_subsystems =
   {"tpc", "TPC", "ebdc20_1" },
   {"tpc", "TPC", "ebdc21_1" },
   {"tpc", "TPC", "ebdc22_1" },
-  {"tpc", "TPC", "ebdc23_1" },
   {"tpc", "TPC", "ebdc23_1" },
 
   // TPOT subsystems
@@ -255,7 +253,7 @@ namespace DBUtils
     }
     catch (odbc::SQLException &e)
     {
-      std::cerr << "test_db_connection - Database connection failed: " << e.getMessage() << std::endl;
+      std::cerr << "connect_db - Database connection failed: " << e.getMessage() << std::endl;
       return false;
     }
     return true;

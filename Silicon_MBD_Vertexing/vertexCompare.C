@@ -1,4 +1,5 @@
 #include <TMath.h>
+#include <TF1.h>
 #include "sPhenixStyle.C"
 
 SetsPhenixStyle();
@@ -27,7 +28,8 @@ void savePlots(T myPlot, string typeCompare, float fitMin = -1.5, float fitMax =
 
   float labelPosition[4];
 
-  string gauss = "[0]*Gaus(x, [1], [2])";
+  string gauss = "gaus";
+  //string gauss = "[0]*Gaus(x, [1], [2])";
   TF1* fitFunc = new TF1 ("f", gauss.c_str(), fitMin, fitMax);
   fitFunc->SetLineColor(kRed);
   fitFunc->SetParName(0, "Const"); fitFunc->SetParameter(0, 10); fitFunc->SetParLimits(0, 0, 10000);

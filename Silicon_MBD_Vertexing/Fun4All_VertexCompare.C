@@ -4,17 +4,15 @@
 #include <fun4all/Fun4AllRunNodeInputManager.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4allraw/Fun4AllEventOutputManager.h>
-#include <fun4allraw/Fun4AllPrdfInputTriggerManager.h>
 #include <fun4allraw/Fun4AllPrdfInputManager.h>
-#include <fun4allraw/Fun4AllPrdfInputTriggerManager.h>
 #include <fun4allraw/Fun4AllStreamingInputManager.h>
+#include <fun4allraw/Fun4AllTriggeredInputManager.h>
 #include <fun4allraw/InputManagerType.h>
 #include <fun4allraw/SingleInttPoolInput.h>
 #include <fun4allraw/SingleGl1PoolInput.h>
-#include <fun4allraw/SingleGl1TriggerInput.h>
-#include <fun4allraw/SingleMbdTriggerInput.h>
+#include <fun4allraw/SingleGl1TriggeredInput.h>
 #include <fun4allraw/SingleMvtxPoolInput.h>
-#include <fun4allraw/SingleTriggerInput.h>
+#include <fun4allraw/SingleTriggeredInput.h>
 
 #include <ffamodules/CDBInterface.h>
 #include <ffamodules/FlagHandler.h>
@@ -69,20 +67,17 @@ string Fun4All_MBD_data(const int nEvents = 3e3, const int runNumber = 68626, co
   Fun4AllServer *se = Fun4AllServer::instance();
   se->Verbosity(1);
 
-  Fun4AllPrdfInputTriggerManager *in = new Fun4AllPrdfInputTriggerManager("Comb");
-  in->InitialPoolDepth(10);
-  in->SetPoolDepth(3);
-  in->Resync(true);
+  Fun4AllTriggeredInputManager *in = new Fun4AllTriggeredInputManager("Comb");
 
   int numInputs = 0;
   ifstream infile(gl1Input);
   if (infile.is_open())
   {
     infile.close();
-    SingleTriggerInput *gl1 = new SingleGl1TriggerInput("Gl1in");
-    gl1->enable_ddump(0);
+    SingleTriggeredInput *gl1 = new SingleGl1TriggeredInput("Gl1in");
+    gl1->KeepPackets();
     gl1->AddListFile(gl1Input);
-    in->registerTriggerInput(gl1, InputManagerType::GL1);
+    in->registerGl1TriggeredInput(gl1);
     numInputs++;
   }
 
@@ -90,10 +85,9 @@ string Fun4All_MBD_data(const int nEvents = 3e3, const int runNumber = 68626, co
   if (infile.is_open())
   {
     infile.close();
-    SingleTriggerInput *mbd = new SingleMbdTriggerInput("Mbdin");
-    mbd->enable_ddump(0);
+    SingleTriggeredInput *mbd = new SingleTriggeredInput("Mbdin");
     mbd->AddListFile(mbdInput);
-    in->registerTriggerInput(mbd, InputManagerType::MBD);
+    in->registerTriggeredInput(mbd);
     numInputs++;
   }
 
@@ -164,8 +158,8 @@ string Fun4All_silicon_data(const int nEvents = 3e3, const int runNumber = 68626
   {
     auto* sngl= new SingleMvtxPoolInput("MVTX_FLX" + to_string(i));
     sngl->Verbosity(0);
-    sngl->SetBcoRange(10);
-    sngl->SetNegativeBco(10);
+    sngl->SetBcoRange(200);
+    sngl->SetNegativeBco(100);
     sngl->AddListFile(file);
     inStream->registerStreamingInput(sngl, InputManagerType::MVTX);
     NumInputs++;
@@ -179,7 +173,7 @@ string Fun4All_silicon_data(const int nEvents = 3e3, const int runNumber = 68626
     sngl->Verbosity(0);
     sngl->SetBcoRange(10);
     sngl->SetNegativeBco(10);
-    sngl->streamingMode(false);
+    sngl->streamingMode(true);
     sngl->AddListFile(file);
     inStream->registerStreamingInput(sngl, InputManagerType::INTT);
     NumInputs++;
@@ -219,10 +213,9 @@ string Fun4All_silicon_data(const int nEvents = 3e3, const int runNumber = 68626
 
   auto silicon_Seeding = new PHActsSiliconSeeding;
   silicon_Seeding->Verbosity(0);
-  silicon_Seeding->setStrobeRange(0, 2);
+  silicon_Seeding->setStrobeRange(-1, 1);
   // these get us to about 83% INTT > 1
   silicon_Seeding->setinttRPhiSearchWindow(0.4);
-  //silicon_Seeding->setinttPhiSearchWindow(0.03);
   silicon_Seeding->setinttZSearchWindow(2.0);
   silicon_Seeding->seedAnalysis(false);
   se->registerSubsystem(silicon_Seeding);
@@ -239,12 +232,12 @@ string Fun4All_silicon_data(const int nEvents = 3e3, const int runNumber = 68626
 
   auto finder = new PHSimpleVertexFinder;
   finder->Verbosity(0);
-  finder->setDcaCut(0.5);
-  finder->setTrackPtCut(0.2);
+  finder->setDcaCut(2);
+  finder->setTrackPtCut(0.1);
   finder->setBeamLineCut(1);
   finder->setTrackQualityCut(1000000000);
-  finder->setNmvtxRequired(3);
-  finder->setOutlierPairCut(0.1);
+  finder->setNmvtxRequired(2);
+  finder->setOutlierPairCut(0.5);
   se->registerSubsystem(finder);
 
   Fun4AllOutputManager *out = new Fun4AllDstOutputManager("SiliconOut", dstOutput.c_str());

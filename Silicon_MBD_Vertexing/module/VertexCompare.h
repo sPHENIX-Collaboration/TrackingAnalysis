@@ -61,11 +61,11 @@ class VertexCompare : public SubsysReco
   TTree* outTree = nullptr;
   std::string outFileName = "outputVTX.root";
 
-  float mbdVertex {0};
-  float trackerVertex {0};
-  UInt_t nTracks {0};
-  UInt_t n_MBDVertex {0};
-  UInt_t n_TRKVertex {0};
+  float mbdVertex {std::numeric_limits<float>::quiet_NaN()};
+  float trackerVertex {std::numeric_limits<float>::quiet_NaN()};
+  UInt_t nTracks {std::numeric_limits<unsigned int>::quiet_NaN()};
+  UInt_t n_MBDVertex {std::numeric_limits<unsigned int>::quiet_NaN()};
+  UInt_t n_TRKVertex {std::numeric_limits<unsigned int>::quiet_NaN()};
 
   bool hasMBD {false};
   bool hasTRK {false};

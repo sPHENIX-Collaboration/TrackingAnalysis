@@ -121,23 +121,13 @@ int VertexCompare::InitRun(PHCompositeNode *topNode)
 //____________________________________________________________________________..
 int VertexCompare::process_event(PHCompositeNode *topNode)
 {
-/*
-  auto gl1packet_one = findNode::getClass<Gl1Packet>(topNode, "GL1RAWHIT");
-  auto gl1packet_two = findNode::getClass<Gl1Packet>(topNode, "GL1Packet");
-
-  int64_t m_bco_one = gl1packet_one->lValue(0, "BCO");
-  int64_t m_bco_two = gl1packet_two->lValue(0, "BCO");
-
-  std::cout << "m_bco_one: " << m_bco_one << std::endl;  
-  std::cout << "m_bco_two: " << m_bco_two << std::endl;  
-*/
   MbdVertexMap *m_dst_mbdvertexmap = findNode::getClass<MbdVertexMap>(topNode, "MbdVertexMap");
   SvtxVertexMap *m_dst_vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
 
   auto globalvertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
 
-  mbdVertex = trackerVertex = 0;
-  nTracks = n_MBDVertex = n_TRKVertex = 0;
+  mbdVertex = trackerVertex = std::numeric_limits<float>::quiet_NaN();
+  nTracks = n_MBDVertex = n_TRKVertex = std::numeric_limits<unsigned int>::quiet_NaN();
 
   hasMBD = false;
   hasTRK = false;
@@ -172,11 +162,13 @@ int VertexCompare::process_event(PHCompositeNode *topNode)
       for (auto &vertex : trkvertexvector)
       {
         SvtxVertex *m_dst_vertex = m_dst_vertexmap->find(vertex->get_id())->second;
+        if ( m_dst_vertex->get_beam_crossing() != 0 ) continue; 
         if ( m_dst_vertex->size_tracks() > nTracks)
         {
           trackerVertex = m_dst_vertex->get_z();
           nTracks = m_dst_vertex->size_tracks();
         }
+        if (nTracks == 0) hasTRK = false; 
       }
     }
   }

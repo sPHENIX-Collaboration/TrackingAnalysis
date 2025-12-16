@@ -1,0 +1,24 @@
+#
+# Descriptor: Lc2pKpi
+#
+# TG: HF
+# Responsible: Thomas Marshall
+# Email: rosstom@ucla.edu
+# Date: 20251124
+#
+Alias             My_antiKstar0        anti-K*0
+Alias             My_DeltaPlusPlus     Delta++
+
+Decay Lambda_c+
+  0.035    p+  K-  pi+  PHSP;
+  0.014    p+  My_antiKstar0  PHSP;
+  0.018    My_DeltaPlusPlus  K-  PHSP;
+Enddecay
+Decay My_antiKstar0
+  0.93     K-  pi+  PHSP;
+Enddecay
+Decay My_DeltaPlusPlus
+  0.994    p+  pi+  PHSP;
+Enddecay
+
+End

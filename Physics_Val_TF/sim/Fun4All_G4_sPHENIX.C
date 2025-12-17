@@ -60,10 +60,10 @@ R__LOAD_LIBRARY(libffamodules.so)
 
 int Fun4All_G4_sPHENIX(const int nEvents = 10,                                                                                                                         //
                        const string &inputFile = "https://www.phenix.bnl.gov/WWW/publish/phnxbld/sPHENIX/files/sPHENIX_G4Hits_sHijing_9-11fm_00000_00010.root",        //
-                       const string &outputFile = "G4sPHENIX_MDC2.root",                                                                                               //
+                       const string &outputFile = "Kshort2pipi_G4sPHENIX.root",                                                                                               //
                        const string &embed_input_file = "https://www.phenix.bnl.gov/WWW/publish/phnxbld/sPHENIX/files/sPHENIX_G4Hits_sHijing_9-11fm_00000_00010.root", //
                        const int skip = 0,                                                                                                                             //
-                       const string &outdir = ".",                                                                                                                     //
+                       const string &outdir = "./",                                                                                                                     //
                        const int runNumber = 1,                                                                                                                        //
                        std::string processID = "0"                                                                                                                     //
 )
@@ -183,7 +183,7 @@ int Fun4All_G4_sPHENIX(const int nEvents = 10,                                  
     }
     else if (prefix == "D2Kpi")
     {
-        PYTHIA8::config_file = "steeringCards/pythia8_K2pipi_Detroit.cfg";
+        PYTHIA8::config_file = "steeringCards/pythia8_D2Kpi_Detroit.cfg";
         EVTGENDECAYER::DecayFile = "decFiles/D2Kpi.DEC";
     }
     else if (prefix == "D2Kpipi") // D+
@@ -372,7 +372,7 @@ int Fun4All_G4_sPHENIX(const int nEvents = 10,                                  
     // What to run
     //======================
     // QA, main switch
-    Enable::QA = false;
+    Enable::QA = true;
 
     // Heavy-flavor simulation setup
     if (prefix != "MinBias")
@@ -1103,7 +1103,36 @@ int Fun4All_G4_sPHENIX(const int nEvents = 10,                                  
     // QA output
     //-----
     if (Enable::QA)
-        QA_Output(outputroot + "_qa.root");
+    {
+        std::string output_dir_QA = "./qaOut"; // default
+        if (prefix == "Kshort2pipi")
+        {
+            output_dir_QA = pipi_output_dir + "/qaOut";
+        }
+        else if (prefix == "D2Kpi")
+        {
+            output_dir_QA = Kpi_output_dir + "/qaOut";
+        }
+        else if (prefix == "D2Kpipi")
+        {
+            output_dir_QA = Kpipi_output_dir + "/qaOut";
+        }
+        else if (prefix == "D2KKpi")
+        {
+            output_dir_QA = KKpi_output_dir + "/qaOut";
+        }
+        else if (prefix == "Lc2pKpi")
+        {
+            output_dir_QA = pKpi_output_dir + "/qaOut";
+        }
+        else if (prefix == "MinBias")
+        {
+            output_dir_QA = mb_output_dir + "/qaOut";
+        }
+        std::string makeDirectory = "mkdir -p " + output_dir_QA;
+        system(makeDirectory.c_str());
+        QA_Output(output_dir_QA + "/qaHists" + trailer);
+    }
 
     //-----
     // Exit

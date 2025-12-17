@@ -3,6 +3,9 @@
 #include <calotrigger/TriggerRunInfoReco.h>
 #include <globalvertex/GlobalVertexReco.h>
 
+#include <kfparticleqa/QAKFParticle.h>
+#include <kfparticleqa/QAKFParticleTrackPtAsymmetry.h>
+
 #pragma GCC diagnostic push
 
 #pragma GCC diagnostic ignored "-Wundefined-internal"
@@ -16,6 +19,7 @@
 R__LOAD_LIBRARY(libkfparticle_sphenix.so)
 R__LOAD_LIBRARY(libcalotrigger.so)
 //R__LOAD_LIBRARY(libDstarReco.so)
+R__LOAD_LIBRARY(libkfparticleqa.so)
 
 namespace HeavyFlavorReco
 {
@@ -64,7 +68,7 @@ namespace HeavyFlavorReco
   //float mb_mass_range[2] = {1.5,2.2};
   //std::string mb_decay_descriptor = "[D_s+ -> {phi -> K^+ K^-} pi^+]cc"; //See twiki on how to set this
   //std::string mb_reconstruction_name = "mb_reco_Ds"; //Used for naming output folder, file and node
-  float mb_mass_range[2] = {1.5,2.2};
+  // float mb_mass_range[2] = {1.5,2.2};
   //std::string mb_decay_descriptor = "[Lambda_c+ -> proton^+ K^- pi^+]cc"; //See twiki on how to set this
   //std::string mb_reconstruction_name = "mb_reco_LambdaC"; //Used for naming output folder, file and node
   //float mb_mass_range[2] = {2.1,2.6};
@@ -78,7 +82,7 @@ namespace HeavyFlavorReco
   bool save_all_vtx_info = true;
   bool constrain_phi_mass = true;
   bool use_2D_matching = true;
-  bool get_trigger_info = true;
+  bool get_trigger_info = false; // false for simulation
   bool get_detector_info = true;
   bool get_dEdx_info = true;
   float pid_frac = 0.4;
@@ -256,7 +260,8 @@ void reconstruct_pipi_mass()
   kfparticle->getDetectorInfo(get_detector_info);
   kfparticle->saveDST(save_tracks_to_DST);
   kfparticle->doTruthMatching(true);
-  kfparticle->saveParticleContainer(false);
+  kfparticle->saveParticleContainer(true);
+  kfparticle->setContainerName(pipi_reconstruction_name); // Note: needed for QA
   kfparticle->magFieldFile("FIELDMAP_TRACKING");
 
   //PV to SV cuts
@@ -299,6 +304,12 @@ void reconstruct_pipi_mass()
   kfparticle->saveOutput();
 
   se->registerSubsystem(kfparticle);
+
+  QAKFParticle *kfpqa = new QAKFParticle("QAKFParticle_K_S0","K_S0",0.4,0.6);
+  kfpqa->setKFParticleNodeName(pipi_reconstruction_name);
+  kfpqa->enableTrackPtAsymmetry(true); 
+  kfpqa->Verbosity(1);
+  se->registerSubsystem(kfpqa);
 }
 
 /*

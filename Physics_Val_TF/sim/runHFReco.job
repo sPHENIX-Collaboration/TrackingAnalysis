@@ -1,14 +1,14 @@
 Universe        = vanilla
 Notification    = Never
 Priority        = 20
-Initialdir      = /sphenix/user/hjheng/sPHENIXRepo/HF-analysis/simulation/alternative
+Initialdir      = ./
 Executable      = $(Initialdir)/run_HFReco.sh
 PeriodicHold    = (NumJobStarts>=1 && JobStatus == 1)
 request_memory  = 6GB
-IDX             = $(Process)+40000
+IDX             = $(Process)+0
 condorDir       = $(initialDir)/condorLog
 Output          = $(condorDir)/condor_HFG_$INT(IDX,%05d).out
 Error           = $(condorDir)/condor_HFG_$INT(IDX,%05d).err
-Log             = /tmp/condor_kfp_hjheng_$INT(IDX,%05d).log
-Arguments       = 500 Kshort2pipi_$INT(IDX,%05d).root /sphenix/tg/tg01/hf/hjheng/HF-analysis/simulation/Kshort2pipi_newSetup_ $INT(IDX,%05d)
+Log             = /tmp/condor_HFG_$INT(IDX,%05d).log
+Arguments       = 500 Kshort2pipi_$INT(IDX,%05d).root /sphenix/tg/tg01/hf/hjheng/HF-analysis/simulation/Kshort2pipi_ $INT(IDX,%05d)
 Queue 5000

@@ -1,0 +1,45 @@
+#!/bin/bash
+
+source /opt/sphenix/core/bin/sphenix_setup.sh -n new 
+
+export USER="$(id -u -n)"
+export LOGNAME=${USER}
+export HOME=/sphenix/u/${LOGNAME}
+
+#export SPHENIX=${HOME}/sPHENIX
+#export MYINSTALL=$SPHENIX/install
+#export LD_LIBRARY_PATH=$MYINSTALL/lib:$LD_LIBRARY_PATH
+#export ROOT_INCLUDE_PATH=$MYINSTALL/include:$ROOT_INCLUDE_PATH
+#
+#source /opt/sphenix/core/bin/setup_local.sh $MYINSTALL
+
+this_script=$BASH_SOURCE
+this_script=`readlink -f $this_script`
+this_dir=`dirname $this_script`
+echo rsyncing from $this_dir
+echo running: $this_script $*
+
+if [[ ! -z "$_CONDOR_SCRATCH_DIR" && -d $_CONDOR_SCRATCH_DIR ]]
+then
+  cd $_CONDOR_SCRATCH_DIR
+  rsync -av $this_dir/* .
+else
+  echo condor scratch NOT set
+  exit -1
+fi
+
+nEvents=$1
+inDst=$2
+inDstPath=$3
+outDir=$4
+nSkip=$5
+
+getinputfiles.pl $inDst
+#getinputfiles.pl --filelist $inDstList
+
+# print the environment - needed for debugging
+#printenv
+
+echo running: runHFreco.sh $*
+root.exe -q -b Fun4All_HF.C\(${nEvents},\"${inDst}\",\"${outDir}\",${nSkip}\)
+echo Script done

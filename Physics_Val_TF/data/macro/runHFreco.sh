@@ -34,8 +34,11 @@ inDstPath=$3
 outDir=$4
 nSkip=$5
 
-getinputfiles.pl $inDst
-#getinputfiles.pl --filelist $inDstList
+if [[ "${inDst}" == *.root ]]; then
+  getinputfiles.pl $inDst
+elif [[ "${inDst}" == *.list ]]; then
+  getinputfiles.pl --filelist $inDst
+fi
 
 # print the environment - needed for debugging
 #printenv

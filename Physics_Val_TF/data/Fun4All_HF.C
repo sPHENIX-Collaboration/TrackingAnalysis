@@ -76,11 +76,11 @@ void CheckDstType(const std::string inputDST)
 }
 
 void Fun4All_HF(
-    const int nEvents = 100,
-    const std::string inputDST = "DST_TRKR_TRACKS_run2pp_ana506_2024p023_v001-00053877-00000.root",
-    const std::string outDir = "./",
-    const int nSkip = 0,
-    const bool convertSeeds = false)
+    const int nEvents = 500,//
+    const std::string inputDST = "/sphenix/lustre01/sphnxpro/production/run2pp/physics/ana506_2024p023_v001/DST_TRKR_TRACKS/run_00053800_00053900/dst/DST_TRKR_TRACKS_run2pp_ana506_2024p023_v001-00053877-00000.root",//
+    const std::string outDir = "./",//
+    const int nSkip = 0,//
+    const bool convertSeeds = false)//
 {
   auto se = Fun4AllServer::instance();
   se->Verbosity(1);
@@ -311,12 +311,14 @@ void Fun4All_HF(
     Tracking_Reco_Vertex_run2pp();
   }
 
-  //if (run_pipi_reco) create_hf_directories(pipi_reconstruction_name, pipi_output_dir, pipi_output_reco_file);
-  //if (run_Kpi_reco) create_hf_directories(Kpi_reconstruction_name, Kpi_output_dir, Kpi_output_reco_file);
-  //if (run_KK_reco) create_hf_directories(KK_reconstruction_name, KK_output_dir, KK_output_reco_file);
-  //if (run_ppi_reco) create_hf_directories(ppi_reconstruction_name, ppi_output_dir, ppi_output_reco_file);
+  output_dir = outDir;
 
-  //if (run_pipi_reco || run_Kpi_reco || run_KK_reco || run_ppi_reco) init_kfp_dependencies();
+  if (run_pipi_reco) create_hf_directories(pipi_reconstruction_name, pipi_output_dir, pipi_output_reco_file);
+  if (run_Kpi_reco) create_hf_directories(Kpi_reconstruction_name, Kpi_output_dir, Kpi_output_reco_file);
+  if (run_KK_reco) create_hf_directories(KK_reconstruction_name, KK_output_dir, KK_output_reco_file);
+  if (run_ppi_reco) create_hf_directories(ppi_reconstruction_name, ppi_output_dir, ppi_output_reco_file);
+
+  if (run_pipi_reco || run_Kpi_reco || run_KK_reco || run_ppi_reco) init_kfp_dependencies();
 
   if (run_pipi_reco) reconstruct_pipi_mass();
   if (run_Kpi_reco) reconstruct_Kpi_mass();
@@ -328,15 +330,37 @@ void Fun4All_HF(
   se->End();
   se->PrintTimer();
 
-  TString qaname = outDir + "HIST_" + nice_runnumber.str() + "_" + nice_segment.str() + "_" + nice_skip.str() + "_QA.root";
+  TString qaname = output_dir + "qaOut/HIST_" + nice_runnumber.str() + "_" + nice_segment.str() + "_" + nice_skip.str() + "_QA.root";
+  std::string makeDirectory = "mkdir -p " + output_dir + "qaOut";
+  if (run_pipi_reco) 
+  {
+    qaname = pipi_output_dir + "qaOut/HIST_" + nice_runnumber.str() + "_" + nice_segment.str() + "_" + nice_skip.str() + "_QA.root";
+    makeDirectory = "mkdir -p " + pipi_output_dir + "qaOut";
+  }
+  else if (run_Kpi_reco)
+  {
+    qaname = Kpi_output_dir + "qaOut/HIST_" + nice_runnumber.str() + "_" + nice_segment.str() + "_" + nice_skip.str() + "_QA.root";
+    makeDirectory = "mkdir -p " + Kpi_output_dir + "qaOut";
+  }
+  else if (run_KK_reco)
+  {
+    qaname = KK_output_dir + "qaOut/HIST_" + nice_runnumber.str() + "_" + nice_segment.str() + "_" + nice_skip.str() + "_QA.root";
+    makeDirectory = "mkdir -p " + KK_output_dir + "qaOut";
+  }
+  else if (run_ppi_reco)
+  {
+    qaname = ppi_output_dir + "qaOut/HIST_" + nice_runnumber.str() + "_" + nice_segment.str() + "_" + nice_skip.str() + "_QA.root";
+    makeDirectory = "mkdir -p " + ppi_output_dir + "qaOut";
+  }
   std::cout << "Output QA file: " << qaname << std::endl;
+  system(makeDirectory.c_str());
   std::string qaOutputFileName(qaname.Data());
-  QAHistManagerDef::saveQARootFile(qaOutputFileName);
+  QA_Output(qaOutputFileName);
 
-  //if (run_pipi_reco) end_kfparticle(pipi_output_reco_file, pipi_output_dir);
-  //if (run_Kpi_reco) end_kfparticle(Kpi_output_reco_file, Kpi_output_dir);
-  //if (run_KK_reco) end_kfparticle(KK_output_reco_file, KK_output_dir);
-  //if (run_ppi_reco) end_kfparticle(ppi_output_reco_file, ppi_output_dir);
+  if (run_pipi_reco) end_kfparticle(pipi_output_reco_file, pipi_output_dir);
+  if (run_Kpi_reco) end_kfparticle(Kpi_output_reco_file, Kpi_output_dir);
+  if (run_KK_reco) end_kfparticle(KK_output_reco_file, KK_output_dir);
+  if (run_ppi_reco) end_kfparticle(ppi_output_reco_file, ppi_output_dir);
 
   delete se;
 

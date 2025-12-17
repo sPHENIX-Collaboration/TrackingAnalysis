@@ -4,6 +4,7 @@
 #include <globalvertex/GlobalVertexReco.h>
 
 #include <kfparticleqa/QAKFParticle.h>
+#include <kfparticleqa/QAKFParticleTrackPtAsymmetry.h>
 
 #pragma GCC diagnostic push
 
@@ -15,15 +16,16 @@
 
 R__LOAD_LIBRARY(libkfparticle_sphenix.so)
 R__LOAD_LIBRARY(libcalotrigger.so)
+R__LOAD_LIBRARY(libkfparticleqa.so)
 
 namespace HeavyFlavorReco
 {
   int VERBOSITY_HF = 0;
 
   bool run_pipi_reco = true;
-  bool run_ppi_reco = true;
-  bool run_KK_reco = true;
-  bool run_Kpi_reco = true;
+  bool run_ppi_reco = false; // set to true if needed
+  bool run_KK_reco = false; // set to true if needed
+  bool run_Kpi_reco = false; // set to true if needed
 
   std::string output_dir = "./"; //Top dir of where the output nTuples will be written
   std::string kfp_header = "outputKFParticle_";
@@ -51,14 +53,15 @@ namespace HeavyFlavorReco
   std::string Kpi_output_reco_file;
   std::string Kpi_output_dir;
 
+  bool save_kfpntuple = true;
   bool use_pid = true;
-  bool save_tracks_to_DST = false;
+  bool save_tracks_to_DST = true;
   bool dont_use_global_vertex = true;
   bool require_track_and_vertex_match = true;
   bool save_all_vtx_info = true;
   bool constrain_phi_mass = true;
-  bool use_2D_matching = true;
-  bool get_trigger_info = false;
+  bool use_2D_matching = false;
+  bool get_trigger_info = true;
   bool get_detector_info = true;
   bool get_dEdx_info = true;
   float pid_frac = 0.4;
@@ -102,15 +105,23 @@ void reconstruct_pipi_mass()
   KFParticle_sPHENIX *kfparticle = new KFParticle_sPHENIX(pipi_reconstruction_name);
 
   kfparticle->setDecayDescriptor(pipi_decay_descriptor);
-  kfparticle->saveOutput(false);
 
-  kfparticle->usePID();
-  kfparticle->setPIDacceptFraction(0.4);
-  kfparticle->dontUseGlobalVertex();
-  kfparticle->requireTrackVertexBunchCrossingMatch();
+  kfparticle->extraolateTracksToSV(false); //To ensure the pT map is accurate
+
+  kfparticle->saveOutput(save_kfpntuple);
+
+  kfparticle->usePID(use_pid);
+  kfparticle->setPIDacceptFraction(pid_frac);
+  kfparticle->dontUseGlobalVertex(dont_use_global_vertex);
+  kfparticle->requireTrackVertexBunchCrossingMatch(require_track_and_vertex_match);
+  kfparticle->getAllPVInfo(save_all_vtx_info);
   kfparticle->allowZeroMassTracks();
-  kfparticle->saveDST();
+  kfparticle->use2Dmatching(use_2D_matching);
+  kfparticle->getTriggerInfo(get_trigger_info);
+  kfparticle->getDetectorInfo(get_detector_info);
+  kfparticle->saveDST(save_tracks_to_DST);
   kfparticle->setContainerName(pipi_reconstruction_name);
+  kfparticle->saveParticleContainer(true);
   kfparticle->magFieldFile("FIELDMAP_TRACKING");
 
   //PV to SV cuts
@@ -118,13 +129,26 @@ void reconstruct_pipi_mass()
   kfparticle->setMotherIPchi2(100);
   kfparticle->setFlightDistancechi2(-1.);
   kfparticle->setMinDIRA(0.88);
+  kfparticle->setMinDIRA_XY(-1.1);
   kfparticle->setDecayLengthRange(0.1, FLT_MAX);
+  kfparticle->setDecayLengthRange_XY(-10000, FLT_MAX);
+  kfparticle->setDecayTimeRange_XY(-10000, FLT_MAX);
+  kfparticle->setDecayTimeRange(-10000, FLT_MAX);
+  kfparticle->setMinDecayTimeSignificance(-1e5);
+  kfparticle->setMinDecayLengthSignificance(-1e5);
+  kfparticle->setMinDecayLengthSignificance_XY(-1e5);
+  kfparticle->setMaximumDaughterDCA_XY(100);
 
   //Track parameters
   kfparticle->setMinimumTrackPT(0.0);
-  kfparticle->setMinTPChits(20);
+  kfparticle->setMinimumTrackIPchi2(-1.);
+  kfparticle->setMinimumTrackIPchi2_XY(-1.);
+  kfparticle->setMinimumTrackIP(-1.);
+  kfparticle->setMinimumTrackIP_XY(-100.);
+  kfparticle->setMaximumTrackchi2nDOF(100.);
   kfparticle->setMinMVTXhits(1);
-  kfparticle->setMinINTThits(0);
+  kfparticle->setMinINTThits(1);
+  kfparticle->setMinTPChits(25);
 
   //Vertex parameters
   kfparticle->setMaximumVertexchi2nDOF(20);
@@ -137,11 +161,16 @@ void reconstruct_pipi_mass()
   kfparticle->setMaximumMass(0.60);
   kfparticle->setMaximumMotherVertexVolume(0.1);
 
+  kfparticle->setOutputName(pipi_output_reco_file);
+
   se->registerSubsystem(kfparticle);
 
   QAKFParticle *kfpqa = new QAKFParticle("QAKFParticle_K_S0","K_S0",0.4,0.6);
   kfpqa->setKFParticleNodeName(pipi_reconstruction_name);
+  kfpqa->enableTrackPtAsymmetry(true); 
+  kfpqa->Verbosity(VERBOSITY_HF);
   se->registerSubsystem(kfpqa);
+
 }
 
 void reconstruct_KK_mass()

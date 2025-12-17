@@ -10,5 +10,5 @@ condorDir       = $(initialDir)/condorLog
 Output          = $(condorDir)/condor_HFG_$INT(IDX,%05d).out
 Error           = $(condorDir)/condor_HFG_$INT(IDX,%05d).err
 Log             = /tmp/condor_HFG_$INT(IDX,%05d).log
-Arguments       = 500 Kshort2pipi_$INT(IDX,%05d).root /sphenix/tg/tg01/hf/hjheng/HF-analysis/simulation/Kshort2pipi_ $INT(IDX,%05d)
+Arguments       = 500 Kshort2pipi_$INT(IDX,%05d).root ./KFParticle_output/Kshort2pipi_ $INT(IDX,%05d)
 Queue 5000

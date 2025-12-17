@@ -17,7 +17,7 @@ totalLargeSegments=1 #$(ls -1 ${filePath}*000.root | wc -l)
 totalLargeSegments=$((${totalLargeSegments} - 1))
 
 nTotal=10000 #10000 events per segment
-nEvents=10000 # nEvents per job
+nEvents=5000 # nEvents per job
 nSkips=$((($nTotal / $nEvents) - 1))
 
 outDir=fileLists

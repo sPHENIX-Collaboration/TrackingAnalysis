@@ -53,7 +53,7 @@ namespace HeavyFlavorReco
   std::string Kpi_output_reco_file;
   std::string Kpi_output_dir;
 
-  bool save_kfpntuple = true;
+  bool save_kfpntuple = false;
   bool use_pid = true;
   bool save_tracks_to_DST = true;
   bool dont_use_global_vertex = true;

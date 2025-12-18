@@ -2,6 +2,7 @@
 This support starting from any level of DSTs, and produce various QA outputs
 
 - Obtain DST lists
+
 If you want to start from Raw Hit DSTs, please use ``getFiles_rawhit.sh``.
 Modify here according to what run species (``run2pp`` or ``run3auau`` or ``run3pp``), run type (always ``physics``), ana build (``anaXXX``), cdb tag (always ``nocdbtag`` for raw hit DSTs), and version number (``vXXX``)
 ```
@@ -34,12 +35,13 @@ Execute in a similar way:
 ./getFiles.sh 53877
 ```
 
-- Macro
+- Macro set up
+
 Macro and run script are stored in ``macro/`` directory
 ```
 Fun4All_HF.C  HF_selections.C  runHFreco.sh
 ```
-Currently, it supports KFParticle QA for reconstructing four resonances: $K_S^0,\,\Lambda,\,\phi,\,D^0$ as well as various Tracking QA modules which depends on which level of DST you input.
+Currently, it supports KFParticle QA for reconstructing four resonances: $K_S^0,\ \Lambda,\ \phi,\ D^0$ as well as various Tracking QA modules which depends on which level of DST you input.
 For KFParticle QA, if you want to enable or disable specific channel, please go to ``HF_selections.C`` and modify here:
 ```
   bool run_pipi_reco = true;
@@ -57,7 +59,9 @@ bool get_trigger_info = true;
 bool get_detector_info = true;
 bool get_dEdx_info = true;
 ```
+
 **These flags automatically input raw hit DSTs or cluster DSTs in Fun4All_HF.C**
+
 If your input is high level DST (cluster,seed,track) which does not have GL1RAWHIT node, and you want to get trigger info, you need to enable ``get_trigger_info`` flag. Then, go to ``Fun4All_HF.C`` and change raw hit DST path to match with input DST
 ```c++
   if (get_trigger_info)
@@ -92,16 +96,19 @@ Then go to ``Fun4All_HF.C`` and change cluster DST path to match with your input
 ```
 
 - Submit jobs
+
 Modify ``myCondor.job``, basically only change this line to your absolute local path
 ```
 Initialdir         = ./
 ```
+
 **Remember to create a ``log`` directory for condor output files (log,out,err).**
+
 Use ``submitCondorJobs.sh`` to submit jobs. Modify this line to whatever runs you want to analyze, and separate the different runs with spaces.
 ```
 runs="53783 53756 53877 53876"
 ```
-Then exeute it
+Then execute it
 ```
 source submitCondorJobs.sh
 ```

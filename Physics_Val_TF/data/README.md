@@ -41,7 +41,7 @@ Macro and run script are stored in ``macro/`` directory
 ```
 Fun4All_HF.C  HF_selections.C  runHFreco.sh
 ```
-Currently, it supports KFParticle QA for reconstructing four resonances: $K_S^0,\,\Lambda,\,\phi,\,D^0$ as well as various Tracking QA modules which depends on which level of DST you input.
+Currently, it supports KFParticle QA for reconstructing four resonances: $K_S^0,\ \Lambda,\ \phi,\ D^0$ as well as various Tracking QA modules which depends on which level of DST you input.
 For KFParticle QA, if you want to enable or disable specific channel, please go to ``HF_selections.C`` and modify here:
 ```
   bool run_pipi_reco = true;

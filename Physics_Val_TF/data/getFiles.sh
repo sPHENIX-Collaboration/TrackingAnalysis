@@ -5,12 +5,19 @@ run=$1
 dirStart=${run:0:3}
 dirEnd=$(($dirStart + 1))
 
+runSpecies=run2pp
 buildTag=ana506_2024p023_v001
 dstType=DST_TRKR_TRACKS
 
-directory=/sphenix/lustre01/sphnxpro/production/run2pp/physics/${buildTag}/${dstType}/run_000${dirStart}00_000${dirEnd}00/dst/
+directory=DIRECTORY
+if [[ "${runSpecies}" == "run3auau" || "${runSpecies}" == "run3pp" ]]; then
+  directory=/sphenix/lustre01/sphnxpro/production/${runSpecies}/physics/${buildTag}/${dstType}/run_000${dirStart}00_000${dirEnd}00/
+fi
+if [[ "${runSpecies}" == "run2pp" ]]; then
+  directory=/sphenix/lustre01/sphnxpro/production/${runSpecies}/physics/${buildTag}/${dstType}/run_000${dirStart}00_000${dirEnd}00/dst/
+fi
 
-fileHeader=${dstType}_run2pp_${buildTag}-000${run}-
+fileHeader=${dstType}_${runSpecies}_${buildTag}-000${run}-
 filePath=${directory}${fileHeader}
 
 totalLargeSegments=1 #$(ls -1 ${filePath}*000.root | wc -l)
@@ -63,7 +70,8 @@ do
     do
       startEvent=$(($i*$nEvents))
 
-      echo "${nEvents} ${DST} ${directory} ${startEvent}" >> ${outFile}
+      #echo "${nEvents} ${DST} ${directory} ${startEvent}" >> ${outFile}
+      echo "${nEvents} ${DST} ${startEvent}" >> ${outFile}
 
     done
  

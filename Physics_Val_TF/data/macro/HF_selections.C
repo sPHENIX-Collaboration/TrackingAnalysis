@@ -53,7 +53,7 @@ namespace HeavyFlavorReco
   std::string Kpi_output_reco_file;
   std::string Kpi_output_dir;
 
-  bool save_kfpntuple = true;
+  bool save_kfpntuple = false;
   bool use_pid = true;
   bool save_tracks_to_DST = true;
   bool dont_use_global_vertex = true;
@@ -180,15 +180,20 @@ void reconstruct_KK_mass()
   KFParticle_sPHENIX *kfparticle = new KFParticle_sPHENIX(KK_reconstruction_name);
 
   kfparticle->setDecayDescriptor(KK_decay_descriptor);
-  kfparticle->saveOutput(false);
+  kfparticle->saveOutput(save_kfpntuple);
 
-  kfparticle->usePID();
-  kfparticle->setPIDacceptFraction(0.4);
-  kfparticle->dontUseGlobalVertex();
-  kfparticle->requireTrackVertexBunchCrossingMatch();
+  kfparticle->usePID(use_pid);
+  kfparticle->setPIDacceptFraction(pid_frac);
+  kfparticle->dontUseGlobalVertex(dont_use_global_vertex);
+  kfparticle->requireTrackVertexBunchCrossingMatch(require_track_and_vertex_match);
+  kfparticle->getAllPVInfo(save_all_vtx_info);
   kfparticle->allowZeroMassTracks();
-  kfparticle->saveDST();
+  kfparticle->use2Dmatching(use_2D_matching);
+  kfparticle->getTriggerInfo(get_trigger_info);
+  kfparticle->getDetectorInfo(get_detector_info);
+  kfparticle->saveDST(save_tracks_to_DST);
   kfparticle->setContainerName(KK_reconstruction_name);
+  kfparticle->saveParticleContainer(true);
   kfparticle->magFieldFile("FIELDMAP_TRACKING");
 
   //PV to SV cuts
@@ -229,15 +234,20 @@ void reconstruct_ppi_mass()
   KFParticle_sPHENIX *kfparticle = new KFParticle_sPHENIX(ppi_reconstruction_name);
 
   kfparticle->setDecayDescriptor(ppi_decay_descriptor);
-  kfparticle->saveOutput(false);
+  kfparticle->saveOutput(save_kfpntuple);
 
-  kfparticle->usePID();
-  kfparticle->setPIDacceptFraction(0.4);
-  kfparticle->dontUseGlobalVertex();
-  kfparticle->requireTrackVertexBunchCrossingMatch();
+  kfparticle->usePID(use_pid);
+  kfparticle->setPIDacceptFraction(pid_frac);
+  kfparticle->dontUseGlobalVertex(dont_use_global_vertex);
+  kfparticle->requireTrackVertexBunchCrossingMatch(require_track_and_vertex_match);
+  kfparticle->getAllPVInfo(save_all_vtx_info);
   kfparticle->allowZeroMassTracks();
-  kfparticle->saveDST();
+  kfparticle->use2Dmatching(use_2D_matching);
+  kfparticle->getTriggerInfo(get_trigger_info);
+  kfparticle->getDetectorInfo(get_detector_info);
+  kfparticle->saveDST(save_tracks_to_DST);
   kfparticle->setContainerName(ppi_reconstruction_name);
+  kfparticle->saveParticleContainer(true);
   kfparticle->magFieldFile("FIELDMAP_TRACKING");
 
   //PV to SV cuts
@@ -280,15 +290,20 @@ void reconstruct_Kpi_mass()
   kfparticle->Verbosity(0);
 
   kfparticle->setDecayDescriptor(Kpi_decay_descriptor);
-  kfparticle->saveOutput(false);
+  kfparticle->saveOutput(save_kfpntuple);
 
-  kfparticle->usePID();
-  kfparticle->setPIDacceptFraction(0.4);
-  kfparticle->dontUseGlobalVertex();
-  kfparticle->requireTrackVertexBunchCrossingMatch();
+  kfparticle->usePID(use_pid);
+  kfparticle->setPIDacceptFraction(pid_frac);
+  kfparticle->dontUseGlobalVertex(dont_use_global_vertex);
+  kfparticle->requireTrackVertexBunchCrossingMatch(require_track_and_vertex_match);
+  kfparticle->getAllPVInfo(save_all_vtx_info);
   kfparticle->allowZeroMassTracks();
-  kfparticle->saveDST();
+  kfparticle->use2Dmatching(use_2D_matching);
+  kfparticle->getTriggerInfo(get_trigger_info);
+  kfparticle->getDetectorInfo(get_detector_info);
+  kfparticle->saveDST(save_tracks_to_DST);
   kfparticle->setContainerName(Kpi_reconstruction_name);
+  kfparticle->saveParticleContainer(true);
   kfparticle->magFieldFile("FIELDMAP_TRACKING");
 
   //PV to SV cuts

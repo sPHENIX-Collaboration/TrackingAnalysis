@@ -31,9 +31,8 @@ fi
 
 nEvents=$1
 inDst=$2
-inDstPath=$3
-outDir=$4
-nSkip=$5
+outDir=$3
+nSkip=$4
 
 if [[ "${inDst}" == *.root ]]; then
   getinputfiles.pl $inDst

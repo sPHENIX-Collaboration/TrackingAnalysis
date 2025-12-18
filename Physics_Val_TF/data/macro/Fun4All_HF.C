@@ -20,7 +20,18 @@
 
 #include <phool/recoConsts.h>
 
-#include <cdbobjects/CDBTTree.h>
+#include <mvtxrawhitqa/MvtxRawHitQA.h>
+#include <inttrawhitqa/InttRawHitQA.h>
+#include <tpcqa/TpcRawHitQA.h>
+#include <trackingqa/InttClusterQA.h>
+#include <trackingqa/MicromegasClusterQA.h>
+#include <trackingqa/MvtxClusterQA.h>
+#include <trackingqa/TpcClusterQA.h>
+#include <trackingqa/SiliconSeedsQA.h>
+#include <trackingqa/TpcSeedsQA.h>
+#include <trackingqa/TrackFittingQA.h>
+#include <trackingqa/TpcSiliconQA.h>
+#include <trackingqa/VertexQA.h>
 
 #include <kfparticle_sphenix/KFParticle_sPHENIX.h>
 
@@ -117,7 +128,7 @@ void Fun4All_HF(
         std::pair<int, int> runseg = Fun4AllUtils::GetRunSegment(filepath);
         runnumber = runseg.first;
         segment = runseg.second;
-        CheckDstType(inputDST);
+        CheckDstType(filepath);
       }
       std::string inputname = "InputManager" + std::to_string(i);
       auto *hitsin = new Fun4AllDstInputManager(inputname);
@@ -261,6 +272,10 @@ void Fun4All_HF(
     }
 
     Micromegas_HitUnpacking();
+
+    se->registerSubsystem(new MvtxRawHitQA);
+    se->registerSubsystem(new InttRawHitQA);
+    se->registerSubsystem(new TpcRawHitQA);
   }
 
   if (DoClustering)
@@ -276,16 +291,76 @@ void Fun4All_HF(
     Micromegas_Clustering();
 
     Reject_Laser_Events();
+
+    se->registerSubsystem(new MvtxClusterQA);
+    se->registerSubsystem(new InttClusterQA);
+    se->registerSubsystem(new TpcClusterQA);
+    se->registerSubsystem(new MicromegasClusterQA);
   }
 
   if (DoSeeding)
   {
     Tracking_Reco_TrackSeed_run2pp();
-    Tracking_Reco_TrackMatching_run2pp();
+
+    auto converter = new TrackSeedTrackMapConverter("SiliconSeedConverter");
+    // Default set to full SvtxTrackSeeds. Can be set to
+    // SiliconTrackSeedContainer or TpcTrackSeedContainer
+    converter->setTrackSeedName("SiliconTrackSeedContainer");
+    converter->setTrackMapName("SiliconSvtxTrackMap");
+    converter->setFieldMap(G4MAGNET::magfield_tracking);
+    converter->Verbosity(0);
+    se->registerSubsystem(converter);
+
+    auto finder = new PHSimpleVertexFinder("SiliconVertexFinder");
+    finder->Verbosity(0);
+    finder->setDcaCut(0.1);
+    finder->setTrackPtCut(0.1);
+    finder->setBeamLineCut(1);
+    finder->setTrackQualityCut(1000000000);
+    finder->setNmvtxRequired(3);
+    finder->setOutlierPairCut(0.1);
+    finder->setTrackMapName("SiliconSvtxTrackMap");
+    finder->setVertexMapName("SiliconSvtxVertexMap");
+    se->registerSubsystem(finder);
+
+    auto siliconqa = new SiliconSeedsQA;
+    siliconqa->setTrackMapName("SiliconSvtxTrackMap");
+    siliconqa->setVertexMapName("SiliconSvtxVertexMap");
+    se->registerSubsystem(siliconqa);
+
+    auto convertertpc = new TrackSeedTrackMapConverter("TpcSeedConverter");
+    // Default set to full SvtxTrackSeeds. Can be set to
+    // SiliconTrackSeedContainer or TpcTrackSeedContainer
+    convertertpc->setTrackSeedName("TpcTrackSeedContainer");
+    convertertpc->setTrackMapName("TpcSvtxTrackMap");
+    convertertpc->setFieldMap(G4MAGNET::magfield_tracking);
+    convertertpc->Verbosity(0);
+    se->registerSubsystem(convertertpc);
+
+    auto findertpc = new PHSimpleVertexFinder("TpcSimpleVertexFinder");
+    findertpc->Verbosity(0);
+    findertpc->setDcaCut(0.5);
+    findertpc->setTrackPtCut(0.2);
+    findertpc->setBeamLineCut(1);
+    findertpc->setTrackQualityCut(1000000000);
+    //findertpc->setNmvtxRequired(3);
+    findertpc->setRequireMVTX(false);
+    findertpc->setOutlierPairCut(0.1);
+    findertpc->setTrackMapName("TpcSvtxTrackMap");
+    findertpc->setVertexMapName("TpcSvtxVertexMap");
+    se->registerSubsystem(findertpc);
+
+    auto tpcqa = new TpcSeedsQA;
+    tpcqa->setTrackMapName("TpcSvtxTrackMap");
+    tpcqa->setVertexMapName("TpcSvtxVertexMap");
+    tpcqa->setSegment(rc->get_IntFlag("RUNSEGMENT"));
+    se->registerSubsystem(tpcqa);
   }
 
   if (DoFitting)
   {
+    Tracking_Reco_TrackMatching_run2pp();
+
     G4TRACKING::convert_seeds_to_svtxtracks = convertSeeds;
     std::cout << "Converting to seeds : " << G4TRACKING::convert_seeds_to_svtxtracks << std::endl;
     /*
@@ -309,6 +384,10 @@ void Fun4All_HF(
 
     //vertexing and propagation to vertex
     Tracking_Reco_Vertex_run2pp();
+
+    se->registerSubsystem(new TpcSiliconQA);
+    se->registerSubsystem(new TrackFittingQA);
+    se->registerSubsystem(new VertexQA);
   }
 
   output_dir = outDir;

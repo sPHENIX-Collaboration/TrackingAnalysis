@@ -26,6 +26,7 @@ namespace HeavyFlavorReco
   bool run_ppi_reco = false; // set to true if needed
   bool run_KK_reco = false; // set to true if needed
   bool run_Kpi_reco = false; // set to true if needed
+  bool run_ee_reco = false; // set to true if needed
 
   std::string output_dir = "./"; //Top dir of where the output nTuples will be written
   std::string kfp_header = "outputKFParticle_";
@@ -53,6 +54,11 @@ namespace HeavyFlavorReco
   std::string Kpi_output_reco_file;
   std::string Kpi_output_dir;
 
+  std::string ee_decay_descriptor = "[gamma -> e^+ e^-]cc"; //See twiki on how to set this
+  std::string ee_reconstruction_name = "ee_reco"; //Used for naming output folder, file and node
+  std::string ee_output_reco_file;
+  std::string ee_output_dir;
+
   bool save_kfpntuple = false;
   bool use_pid = true;
   bool save_tracks_to_DST = true;
@@ -64,8 +70,11 @@ namespace HeavyFlavorReco
   bool get_trigger_info = true;
   bool get_detector_info = true;
   bool get_dEdx_info = true;
+  bool get_calo_info = true;
   float pid_frac = 0.4;
+  float cemc_proj_radius = 102.9; //Virgile recommendation according to DetailedCalorimeterGeometry
   bool constrain_lambda_mass = true;
+  bool extraolate_tracks_to_secondary_vertex = false; // Set to false to ensure the pT map is accurate for asymmetry study
 };  // namespace HeavyFlavorReco'
 
 using namespace HeavyFlavorReco;
@@ -106,7 +115,7 @@ void reconstruct_pipi_mass()
 
   kfparticle->setDecayDescriptor(pipi_decay_descriptor);
 
-  kfparticle->extraolateTracksToSV(false); //To ensure the pT map is accurate
+  kfparticle->extraolateTracksToSV(extraolate_tracks_to_secondary_vertex);
 
   kfparticle->saveOutput(save_kfpntuple);
 
@@ -137,7 +146,6 @@ void reconstruct_pipi_mass()
   kfparticle->setMinDecayTimeSignificance(-1e5);
   kfparticle->setMinDecayLengthSignificance(-1e5);
   kfparticle->setMinDecayLengthSignificance_XY(-1e5);
-  kfparticle->setMaximumDaughterDCA_XY(100);
 
   //Track parameters
   kfparticle->setMinimumTrackPT(0.0);
@@ -180,6 +188,9 @@ void reconstruct_KK_mass()
   KFParticle_sPHENIX *kfparticle = new KFParticle_sPHENIX(KK_reconstruction_name);
 
   kfparticle->setDecayDescriptor(KK_decay_descriptor);
+
+  kfparticle->extraolateTracksToSV(extraolate_tracks_to_secondary_vertex);
+
   kfparticle->saveOutput(save_kfpntuple);
 
   kfparticle->usePID(use_pid);
@@ -220,6 +231,8 @@ void reconstruct_KK_mass()
   kfparticle->setMaximumMass(1.1);
   kfparticle->setMaximumMotherVertexVolume(0.1);
 
+  kfparticle->setOutputName(KK_output_reco_file);
+
   se->registerSubsystem(kfparticle);
 
   QAKFParticle *kfpqa = new QAKFParticle("QAKFParticle_phi","phi",0.98,1.1);
@@ -234,6 +247,9 @@ void reconstruct_ppi_mass()
   KFParticle_sPHENIX *kfparticle = new KFParticle_sPHENIX(ppi_reconstruction_name);
 
   kfparticle->setDecayDescriptor(ppi_decay_descriptor);
+
+  kfparticle->extraolateTracksToSV(extraolate_tracks_to_secondary_vertex);
+
   kfparticle->saveOutput(save_kfpntuple);
 
   kfparticle->usePID(use_pid);
@@ -275,6 +291,8 @@ void reconstruct_ppi_mass()
   kfparticle->setMaximumMass(1.15);
   kfparticle->setMaximumMotherVertexVolume(0.1);
 
+  kfparticle->setOutputName(ppi_output_reco_file);
+
   se->registerSubsystem(kfparticle);
 
   QAKFParticle *kfpqa = new QAKFParticle("QAKFParticle_Lambda0","Lambda0",1.08,1.15);
@@ -290,6 +308,9 @@ void reconstruct_Kpi_mass()
   kfparticle->Verbosity(0);
 
   kfparticle->setDecayDescriptor(Kpi_decay_descriptor);
+
+  kfparticle->extraolateTracksToSV(extraolate_tracks_to_secondary_vertex);
+
   kfparticle->saveOutput(save_kfpntuple);
 
   kfparticle->usePID(use_pid);
@@ -334,10 +355,103 @@ void reconstruct_Kpi_mass()
   kfparticle->setMaximumMass(1.95);
   kfparticle->setMaximumMotherVertexVolume(0.1);
 
+  kfparticle->setOutputName(Kpi_output_reco_file);
+
   se->registerSubsystem(kfparticle);
 
   QAKFParticle *kfpqa = new QAKFParticle("QAKFParticle_D0","D0",1.75,1.95);
   kfpqa->setKFParticleNodeName(Kpi_reconstruction_name);
+  se->registerSubsystem(kfpqa);
+}
+
+void reconstruct_ee_mass()
+{
+  Fun4AllServer *se = Fun4AllServer::instance();
+
+  KFParticle_sPHENIX *kfparticle = new KFParticle_sPHENIX(ee_reconstruction_name);
+
+  kfparticle->setDecayDescriptor(ee_decay_descriptor);
+
+  kfparticle->extraolateTracksToSV(extraolate_tracks_to_secondary_vertex);
+
+  kfparticle->saveOutput(save_kfpntuple);
+
+  //kfparticle->usePID(use_pid);
+  //kfparticle->setPIDacceptFraction(pid_frac);
+  kfparticle->dontUseGlobalVertex(dont_use_global_vertex);
+  kfparticle->requireTrackVertexBunchCrossingMatch(require_track_and_vertex_match);
+  kfparticle->getAllPVInfo(save_all_vtx_info);
+  kfparticle->allowZeroMassTracks();
+  kfparticle->use2Dmatching(use_2D_matching);
+  kfparticle->getTriggerInfo(get_trigger_info);
+  kfparticle->getDetectorInfo(get_detector_info);
+  kfparticle->saveDST(save_tracks_to_DST);
+  kfparticle->setContainerName(ee_reconstruction_name);
+  kfparticle->saveParticleContainer(true);
+  kfparticle->magFieldFile("FIELDMAP_TRACKING");
+
+  //PV to SV cuts
+  kfparticle->constrainToPrimaryVertex();
+  kfparticle->setMotherIPchi2(FLT_MAX);
+  kfparticle->setFlightDistancechi2(-1.);
+  kfparticle->setMinDIRA(-1.1);
+  kfparticle->setMinDIRA_XY(-1.1);
+  kfparticle->setDecayLengthRange(0., FLT_MAX);
+  kfparticle->setDecayLengthRange_XY(-10000, FLT_MAX);
+  kfparticle->setDecayTimeRange_XY(-10000, FLT_MAX);
+  kfparticle->setDecayTimeRange(-10000, FLT_MAX);
+  kfparticle->setMinDecayTimeSignificance(-1e5);
+  kfparticle->setMinDecayLengthSignificance(-1e5);
+  kfparticle->setMinDecayLengthSignificance_XY(-1e5);
+
+  //Track parameters
+  kfparticle->bunchCrossingZeroOnly(true);
+  kfparticle->setMinimumTrackPT(0.2);
+  kfparticle->setMaximumTrackPTchi2(FLT_MAX);
+  kfparticle->setMinimumTrackIPchi2(-1.);
+  kfparticle->setMinimumTrackIPchi2_XY(-1.);
+  kfparticle->setMinimumTrackIP(-1.);
+  kfparticle->setMinimumTrackIP_XY(-100.);
+  kfparticle->setMaximumTrackchi2nDOF(300.);
+  kfparticle->setMinMVTXhits(0);
+  kfparticle->setMinINTThits(0);
+  kfparticle->setMinTPChits(25);
+
+  //Track-Calo matching
+  kfparticle->set_emcal_radius_user(cemc_proj_radius);
+  //narrow window
+  kfparticle->set_dphi_cut_low(-0.02); //rad
+  kfparticle->set_dphi_cut_high(0.09); //rad
+  kfparticle->set_dz_cut_low(-4); //cm
+  kfparticle->set_dz_cut_high(4); //cm
+  //loose window
+  /*
+  kfparticle->set_dphi_cut_low(-0.2); //rad
+  kfparticle->set_dphi_cut_high(0.2); //rad
+  kfparticle->set_dz_cut_low(-10); //cm
+  kfparticle->set_dz_cut_high(10); //cm
+  */
+  kfparticle->set_emcal_e_low_cut(0.2); //GeV
+  kfparticle->requireTrackEMCalMatch(true);
+
+  //Vertex parameters
+  kfparticle->setMaximumVertexchi2nDOF(FLT_MAX);
+  kfparticle->setMaximumDaughterDCA(0.5);
+  kfparticle->setMaximumDaughterDCA_XY(100);
+
+  //Parent parameters
+  kfparticle->setMotherPT(0);
+  kfparticle->setMinimumMass(0.0);
+  kfparticle->setMaximumMass(0.1);
+  kfparticle->setMaximumMotherVertexVolume(0.1);
+
+  kfparticle->setOutputName(ee_output_reco_file);
+
+  se->registerSubsystem(kfparticle);
+
+  QAKFParticle *kfpqa = new QAKFParticle("QAKFParticle_gamma","gamma",0.0,0.1);
+  kfpqa->setKFParticleNodeName(ee_reconstruction_name);
+  kfpqa->Verbosity(VERBOSITY_HF);
   se->registerSubsystem(kfpqa);
 }
 

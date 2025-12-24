@@ -10,5 +10,5 @@ OutDir             = $(Initialdir)/root/
 Output             = $(Initialdir)/log/job-Data-$(Cluster)-$(Process).out
 Error              = $(Initialdir)/log/job-Data-$(Cluster)-$(Process).err
 Log                = $(Initialdir)/log/job-Data-$(Cluster)-$(Process).log
-Arguments          = $(events) $(file) $(path) $(OutDir) $(skip)
-Queue events file path skip from fileLists/file_run53877_0.list
+Arguments          = $(events) $(file) $(OutDir) $(skip)
+Queue events file skip from fileLists/file_run53877_0.list

@@ -86,6 +86,28 @@ void CheckDstType(const std::string inputDST)
   return;
 }
 
+std::string GetRunInfo(const std::string& filename)
+{
+  const std::vector<std::string> runspecies_patterns = { "run2pp", "run3pp", "run3auau" };
+  
+  boost::char_separator<char> sep("_");
+  boost::tokenizer<boost::char_separator<char>> tok(filename, sep);
+  
+  for (const auto& t : tok)
+  {
+    for (const auto& pattern : runspecies_patterns)
+    {
+      if (t == pattern)
+      {
+        return t;
+      }
+    }
+  }
+  
+  std::cout << "Cannot extract run info from filename!" << std::endl;
+  return "";
+}
+
 void Fun4All_HF(
     const int nEvents = 500,//
     const std::string inputDST = "/sphenix/lustre01/sphnxpro/production/run2pp/physics/ana506_2024p023_v001/DST_TRKR_TRACKS/run_00053800_00053900/dst/DST_TRKR_TRACKS_run2pp_ana506_2024p023_v001-00053877-00000.root",//
@@ -114,6 +136,7 @@ void Fun4All_HF(
 
   int runnumber = std::numeric_limits<int>::quiet_NaN();
   int segment = std::numeric_limits<int>::quiet_NaN();
+  std::string runspecies = "";
 
   if (IsListFile)
   {
@@ -128,6 +151,7 @@ void Fun4All_HF(
         std::pair<int, int> runseg = Fun4AllUtils::GetRunSegment(filepath);
         runnumber = runseg.first;
         segment = runseg.second;
+	runspecies = GetRunInfo(filepath);
         CheckDstType(filepath);
       }
       std::string inputname = "InputManager" + std::to_string(i);
@@ -143,6 +167,7 @@ void Fun4All_HF(
     std::pair<int, int> runseg = Fun4AllUtils::GetRunSegment(inputDST);
     runnumber = runseg.first;
     segment = runseg.second;
+    runspecies = GetRunInfo(inputDST);
 
     CheckDstType(inputDST);
 
@@ -170,9 +195,20 @@ void Fun4All_HF(
 
   if (get_trigger_info)
   {
-    std::string gl1_file = "/sphenix/lustre01/sphnxpro/production/run2pp/physics/ana479_nocdbtag_v001/DST_STREAMING_EVENT_INTT0/run_"
-                         + nice_rounded_down.str() + "_" + nice_rounded_up.str()
-                         + "/dst/DST_STREAMING_EVENT_INTT0_run2pp_ana479_nocdbtag_v001-" + nice_runnumber.str() + "-" + nice_segment.str() + ".root";
+    std::string gl1_anacdbver = "ana523_nocdbtag_v001";
+    std::string gl1_file;
+    if (runspecies=="run3pp" || runspecies=="run3auau")
+    {
+      gl1_file = "/sphenix/lustre01/sphnxpro/production/" + runspecies + "/physics/" + gl1_anacdbver + "/DST_STREAMING_EVENT_intt0/run_"
+	      + nice_rounded_down.str() + "_" + nice_rounded_up.str()
+	      + "/DST_STREAMING_EVENT_intt0_" + runspecies + "_" + gl1_anacdbver + "-" + nice_runnumber.str() + "-" + nice_segment.str() + ".root";
+    }
+    if (runspecies=="run2pp")
+    {
+      gl1_file = "/sphenix/lustre01/sphnxpro/production/" + runspecies + "/physics/" + gl1_anacdbver + "/DST_STREAMING_EVENT_INTT0/run_"
+	      + nice_rounded_down.str() + "_" + nice_rounded_up.str()
+	      + "/dst/DST_STREAMING_EVENT_INTT0_" + runspecies + "_" + gl1_anacdbver + "-" + nice_runnumber.str() + "-" + nice_segment.str() + ".root";
+    }
 
     auto hitsintrig = new Fun4AllDstInputManager("TriggerInputManager");
     hitsintrig->fileopen(gl1_file);
@@ -181,9 +217,20 @@ void Fun4All_HF(
 
   if (get_dEdx_info || get_detector_info)
   {
-    std::string clus_file = "/sphenix/lustre01/sphnxpro/production/run2pp/physics/ana505_2024p023_v001/DST_TRKR_CLUSTER/run_"
-                          + nice_rounded_down.str() + "_" + nice_rounded_up.str()
-                          + "/dst/DST_TRKR_CLUSTER_run2pp_ana505_2024p023_v001-" + nice_runnumber.str() + "-" + nice_segment.str() + ".root";
+    std::string clus_anacdbver = "ana527_2025p009_v001";
+    std::string clus_file = "";
+    if (runspecies=="run3pp" || runspecies=="run3auau")
+    {
+      clus_file = "/sphenix/lustre01/sphnxpro/production/" + runspecies + "/physics/" + clus_anacdbver + "/DST_TRKR_CLUSTER/run_"
+	      + nice_rounded_down.str() + "_" + nice_rounded_up.str()
+	      + "/DST_TRKR_CLUSTER_" + runspecies + "_" + clus_anacdbver + "-" + nice_runnumber.str() + "-" + nice_segment.str() + ".root";
+    }
+    if (runspecies=="run2pp")
+    {
+      clus_file = "/sphenix/lustre01/sphnxpro/production/" + runspecies + "/physics/" + clus_anacdbver + "/DST_TRKR_CLUSTER/run_"
+	      + nice_rounded_down.str() + "_" + nice_rounded_up.str()
+	      + "/dst/DST_TRKR_CLUSTER_" + runspecies + "_" + clus_anacdbver + "-" + nice_runnumber.str() + "-" + nice_segment.str() + ".root";
+    }
 
     auto hitsinclus = new Fun4AllDstInputManager("ClusterInputManager");
     hitsinclus->fileopen(clus_file);

@@ -70,7 +70,7 @@ namespace HeavyFlavorReco
   bool get_trigger_info = true;
   bool get_detector_info = true;
   bool get_dEdx_info = true;
-  bool get_calo_info = true;
+  bool get_calo_info = false;
   float pid_frac = 0.4;
   float cemc_proj_radius = 102.9; //Virgile recommendation according to DetailedCalorimeterGeometry
   bool constrain_lambda_mass = true;

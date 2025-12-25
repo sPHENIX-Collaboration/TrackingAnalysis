@@ -378,13 +378,14 @@ void reconstruct_ee_mass()
 
   //kfparticle->usePID(use_pid);
   //kfparticle->setPIDacceptFraction(pid_frac);
-  kfparticle->dontUseGlobalVertex(dont_use_global_vertex);
-  kfparticle->requireTrackVertexBunchCrossingMatch(require_track_and_vertex_match);
-  kfparticle->getAllPVInfo(save_all_vtx_info);
+  kfparticle->dontUseGlobalVertex(false);
+  kfparticle->requireTrackVertexBunchCrossingMatch(false);
+  kfparticle->getAllPVInfo(false);
   kfparticle->allowZeroMassTracks();
   kfparticle->use2Dmatching(use_2D_matching);
   kfparticle->getTriggerInfo(get_trigger_info);
   kfparticle->getDetectorInfo(get_detector_info);
+  kfparticle->getCaloInfo(get_calo_info);
   kfparticle->saveDST(save_tracks_to_DST);
   kfparticle->setContainerName(ee_reconstruction_name);
   kfparticle->saveParticleContainer(true);

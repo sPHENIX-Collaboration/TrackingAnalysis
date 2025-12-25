@@ -303,19 +303,35 @@ void Fun4All_HF(const int nEvents = 500,                                        
             Intt_HitUnpacking(std::to_string(server));
         }
         std::ostringstream ebdcname;
-        for (int ebdc = 0; ebdc < 24; ebdc++)
-        {
-            for (int endpoint = 0; endpoint < 2; endpoint++)
+        if (runspecies == "run3pp" || runspecies == "run3auau")
+	{
+            for (int ebdc = 0; ebdc < 24; ebdc++)
+            {
+                for (int endpoint = 0; endpoint < 2; endpoint++)
+                {
+                    ebdcname.str("");
+                    if (ebdc < 10)
+                    {
+                        ebdcname << "0";
+                    }
+                    ebdcname << ebdc << "_" << endpoint;
+                    Tpc_HitUnpacking(ebdcname.str());
+                }
+            }
+	}
+	if (runspecies == "run2pp")
+	{
+            for (int ebdc = 0; ebdc < 24; ebdc++)
             {
                 ebdcname.str("");
                 if (ebdc < 10)
                 {
                     ebdcname << "0";
                 }
-                ebdcname << ebdc << "_" << endpoint;
+                ebdcname << ebdc;
                 Tpc_HitUnpacking(ebdcname.str());
             }
-        }
+	}
 
         Micromegas_HitUnpacking();
 

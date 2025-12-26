@@ -209,7 +209,7 @@ void Fun4All_HF(const int nEvents = 500,                                        
     std::stringstream nice_skip;
     nice_skip << std::setw(5) << std::setfill('0') << to_string(nSkip);
 
-    if (!DoUnpacking && (get_dEdx_info || get_detector_info))
+    if (!DoSeeding && (get_dEdx_info || get_detector_info))
     {
         std::string clus_anacdbver = "ana527_2025p009_v001";
         std::string clus_file = "";
@@ -304,7 +304,7 @@ void Fun4All_HF(const int nEvents = 500,                                        
         }
         std::ostringstream ebdcname;
         if (runspecies == "run3pp" || runspecies == "run3auau")
-	{
+        {
             for (int ebdc = 0; ebdc < 24; ebdc++)
             {
                 for (int endpoint = 0; endpoint < 2; endpoint++)
@@ -318,9 +318,9 @@ void Fun4All_HF(const int nEvents = 500,                                        
                     Tpc_HitUnpacking(ebdcname.str());
                 }
             }
-	}
-	if (runspecies == "run2pp")
-	{
+        }
+        if (runspecies == "run2pp")
+        {
             for (int ebdc = 0; ebdc < 24; ebdc++)
             {
                 ebdcname.str("");
@@ -331,7 +331,7 @@ void Fun4All_HF(const int nEvents = 500,                                        
                 ebdcname << ebdc;
                 Tpc_HitUnpacking(ebdcname.str());
             }
-	}
+        }
 
         Micromegas_HitUnpacking();
 

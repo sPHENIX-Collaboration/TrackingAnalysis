@@ -128,6 +128,7 @@ void reconstruct_pipi_mass()
   kfparticle->use2Dmatching(use_2D_matching);
   kfparticle->getTriggerInfo(get_trigger_info);
   kfparticle->getDetectorInfo(get_detector_info);
+  kfparticle->get_dEdx_info(get_dEdx_info);
   kfparticle->saveDST(save_tracks_to_DST);
   kfparticle->setContainerName(pipi_reconstruction_name);
   kfparticle->saveParticleContainer(true);
@@ -202,6 +203,7 @@ void reconstruct_KK_mass()
   kfparticle->use2Dmatching(use_2D_matching);
   kfparticle->getTriggerInfo(get_trigger_info);
   kfparticle->getDetectorInfo(get_detector_info);
+  kfparticle->get_dEdx_info(get_dEdx_info);
   kfparticle->saveDST(save_tracks_to_DST);
   kfparticle->setContainerName(KK_reconstruction_name);
   kfparticle->saveParticleContainer(true);
@@ -261,6 +263,7 @@ void reconstruct_ppi_mass()
   kfparticle->use2Dmatching(use_2D_matching);
   kfparticle->getTriggerInfo(get_trigger_info);
   kfparticle->getDetectorInfo(get_detector_info);
+  kfparticle->get_dEdx_info(get_dEdx_info);
   kfparticle->saveDST(save_tracks_to_DST);
   kfparticle->setContainerName(ppi_reconstruction_name);
   kfparticle->saveParticleContainer(true);
@@ -322,6 +325,7 @@ void reconstruct_Kpi_mass()
   kfparticle->use2Dmatching(use_2D_matching);
   kfparticle->getTriggerInfo(get_trigger_info);
   kfparticle->getDetectorInfo(get_detector_info);
+  kfparticle->get_dEdx_info(get_dEdx_info);
   kfparticle->saveDST(save_tracks_to_DST);
   kfparticle->setContainerName(Kpi_reconstruction_name);
   kfparticle->saveParticleContainer(true);
@@ -385,6 +389,7 @@ void reconstruct_ee_mass()
   kfparticle->use2Dmatching(use_2D_matching);
   kfparticle->getTriggerInfo(get_trigger_info);
   kfparticle->getDetectorInfo(get_detector_info);
+  kfparticle->get_dEdx_info(get_dEdx_info);
   kfparticle->getCaloInfo(get_calo_info);
   kfparticle->saveDST(save_tracks_to_DST);
   kfparticle->setContainerName(ee_reconstruction_name);

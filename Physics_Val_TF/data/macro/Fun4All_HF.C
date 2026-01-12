@@ -195,11 +195,11 @@ void Fun4All_HF(const int nEvents = 500,                                        
     std::stringstream nice_runnumber;
     nice_runnumber << std::setw(8) << std::setfill('0') << to_string(runnumber);
 
-    int rounded_up = 100 * (std::ceil((float)runnumber / 100));
+    int rounded_up = 100 * (std::ceil((float)(runnumber+0.1) / 100));
     std::stringstream nice_rounded_up;
     nice_rounded_up << std::setw(8) << std::setfill('0') << to_string(rounded_up);
 
-    int rounded_down = 100 * (std::floor((float)runnumber / 100));
+    int rounded_down = 100 * (std::floor((float)(runnumber+0.1) / 100));
     std::stringstream nice_rounded_down;
     nice_rounded_down << std::setw(8) << std::setfill('0') << to_string(rounded_down);
 

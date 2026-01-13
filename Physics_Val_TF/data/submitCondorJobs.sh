@@ -13,7 +13,7 @@ do
   for i in  $(seq 0 $nFiles) 
   do
   
-    i=$(printf "%01d" $i)
+    i=$(printf "%02d" $i)
   
     currentOptionsFile=$(grep 'Queue' ${submissionFile} | awk '{print $NF}' | awk -F "/" '{print $NF}')
     newOptionsFile=file_run${run}_$i.list

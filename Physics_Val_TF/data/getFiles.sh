@@ -20,7 +20,7 @@ fi
 fileHeader=${dstType}_${runSpecies}_${buildTag}-000${run}-
 filePath=${directory}${fileHeader}
 
-totalLargeSegments=1 #$(ls -1 ${filePath}*000.root | wc -l)
+totalLargeSegments=$(ls -1 ${filePath}*000.root | wc -l)
 totalLargeSegments=$((${totalLargeSegments} - 1))
 
 nTotal=10000 #10000 events per segment
@@ -35,7 +35,7 @@ fi
 
 for largeSegment in $(seq 0 $totalLargeSegments)
 do
-  largeSegment=$(printf "%01d" $largeSegment)
+  largeSegment=$(printf "%02d" $largeSegment)
   fileNames=${filePath}${largeSegment}*.root
 
   nDSTs=$(ls -1 ${fileNames} | wc -l)
@@ -52,15 +52,15 @@ do
   fileCounter=0
   for i in $(seq 0 $nDSTs)
   do
-    smallSegment=$(printf "%05d" $fileCounter)
-    checkFile=${filePath}${smallSegment}.root
-    #checkFile=${filePath}${largeSegment}${smallSegment}.root
+    smallSegment=$(printf "%03d" $fileCounter)
+    #checkFile=${filePath}${smallSegment}.root
+    checkFile=${filePath}${largeSegment}${smallSegment}.root
     while [[ ! -f ${checkFile} ]]
     do
       ((fileCounter++))
-      smallSegment=$(printf "%05d" $fileCounter)
-      checkFile=${filePath}${smallSegment}.root
-      #checkFile=${filePath}${largeSegment}${smallSegment}.root
+      smallSegment=$(printf "%03d" $fileCounter)
+      #checkFile=${filePath}${smallSegment}.root
+      checkFile=${filePath}${largeSegment}${smallSegment}.root
     done
 
     DST=$(realpath ${checkFile} | awk -F '/' '{print $NF}' ) 

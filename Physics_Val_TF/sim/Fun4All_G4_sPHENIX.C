@@ -177,36 +177,36 @@ int Fun4All_G4_sPHENIX(const int nEvents = 10,                                  
     int particleID = 421;
     if (prefix == "Kshort2pipi")
     {
-        PYTHIA8::config_file = "steeringCards/pythia8_K2pipi_Detroit.cfg";
+        PYTHIA8::config_file[0] = "steeringCards/pythia8_K2pipi_Detroit.cfg";
         EVTGENDECAYER::DecayFile = "decFiles/K2pipi.DEC";
         particleID = 310;
     }
     else if (prefix == "D2Kpi")
     {
-        PYTHIA8::config_file = "steeringCards/pythia8_D2Kpi_Detroit.cfg";
+        PYTHIA8::config_file[0] = "steeringCards/pythia8_D2Kpi_Detroit.cfg";
         EVTGENDECAYER::DecayFile = "decFiles/D2Kpi.DEC";
     }
     else if (prefix == "D2Kpipi") // D+
     {
-      PYTHIA8::config_file = "steeringCards/pythia8_D2Kpipi_Detroit.cfg";
+      PYTHIA8::config_file[0] = "steeringCards/pythia8_D2Kpipi_Detroit.cfg";
       EVTGENDECAYER::DecayFile = "decFiles/D2Kpipi.DEC";
       particleID = 411;
     }
     else if (prefix == "D2KKpi") // D_s
     {
-      PYTHIA8::config_file = "steeringCards/pythia8_D2KKpi_Detroit.cfg";
+      PYTHIA8::config_file[0] = "steeringCards/pythia8_D2KKpi_Detroit.cfg";
       EVTGENDECAYER::DecayFile = "decFiles/D2KKpi.DEC";
       particleID = 431;
     }
     else if (prefix == "Lc2pKpi") // Lambda_c
     {
-      PYTHIA8::config_file = "steeringCards/pythia8_Lc2pKpi_Detroit.cfg";
+      PYTHIA8::config_file[0] = "steeringCards/pythia8_Lc2pKpi_Detroit.cfg";
       EVTGENDECAYER::DecayFile = "decFiles/Lc2pKpi.DEC";
       particleID = 4122;
     }
     else if (prefix == "MinBias")
     {
-        PYTHIA8::config_file = "steeringCards/pythia8_Detroit.cfg";
+        PYTHIA8::config_file[0] = "steeringCards/pythia8_Detroit.cfg";
     }
 
     //-----------------
@@ -279,7 +279,7 @@ int Fun4All_G4_sPHENIX(const int nEvents = 10,                                  
     if (Input::PYTHIA8)
     {
         //! Nominal collision geometry is selected by Input::BEAM_CONFIGURATION
-        Input::ApplysPHENIXBeamParameter(INPUTGENERATOR::Pythia8);
+        Input::ApplysPHENIXBeamParameter(INPUTGENERATOR::Pythia8[0]);
     }
 
     //--------------
@@ -327,8 +327,8 @@ int Fun4All_G4_sPHENIX(const int nEvents = 10,                                  
     {
         p8_hf_signal_trigger->AddParticles(particleID);
         p8_hf_signal_trigger->AddParticles(-1 * particleID);
-        INPUTGENERATOR::Pythia8->register_trigger(p8_hf_signal_trigger);
-        INPUTGENERATOR::Pythia8->set_trigger_OR();
+        INPUTGENERATOR::Pythia8[0]->register_trigger(p8_hf_signal_trigger);
+        INPUTGENERATOR::Pythia8[0]->set_trigger_OR();
 
         // ! Nominal collision geometry is selected by Input::BEAM_CONFIGURATION
         // Input::ApplysPHENIXBeamParameter(INPUTGENERATOR::Pythia8);

@@ -211,7 +211,9 @@ void Fun4All_HF(const int nEvents = 500,                                        
 
     if (!DoSeeding && (get_dEdx_info || get_detector_info))
     {
-        std::string clus_anacdbver = "ana527_2025p009_v001";
+        //unsigned begin = inputDST.find("ana");
+        //unsigned end = inputDST.find("-");
+        std::string clus_anacdbver = "ana532_2025p009_v001"; //inputDST.substr(begin, end - begin);
         std::string clus_file = "";
         if (runspecies == "run3pp" || runspecies == "run3auau")
         {

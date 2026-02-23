@@ -5,9 +5,9 @@ run=$1
 dirStart=${run:0:3}
 dirEnd=$(($dirStart + 1))
 
-runSpecies=run2pp
-buildTag=ana506_2024p023_v001
-dstType=DST_TRKR_TRACKS
+runSpecies=run3pp
+buildTag=ana533_2025p009_v001
+dstType=DST_TRKR_SEED
 
 directory=DIRECTORY
 if [[ "${runSpecies}" == "run3auau" || "${runSpecies}" == "run3pp" ]]; then

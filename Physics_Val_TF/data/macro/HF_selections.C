@@ -23,9 +23,9 @@ namespace HeavyFlavorReco
   int VERBOSITY_HF = 0;
 
   bool run_pipi_reco = true;
-  bool run_ppi_reco = false; // set to true if needed
+  bool run_ppi_reco = true; // set to true if needed
   bool run_KK_reco = false; // set to true if needed
-  bool run_Kpi_reco = false; // set to true if needed
+  bool run_Kpi_reco = true; // set to true if needed
 
   std::string output_dir = "./"; //Top dir of where the output nTuples will be written
   std::string kfp_header = "outputKFParticle_";
@@ -53,19 +53,52 @@ namespace HeavyFlavorReco
   std::string Kpi_output_reco_file;
   std::string Kpi_output_dir;
 
-  bool save_kfpntuple = false;
-  bool use_pid = true;
+  bool save_kfpntuple = true;
+  bool use_pid = false;
   bool save_tracks_to_DST = true;
   bool dont_use_global_vertex = true;
   bool require_track_and_vertex_match = true;
   bool save_all_vtx_info = true;
   bool constrain_phi_mass = true;
   bool use_2D_matching = false;
-  bool get_trigger_info = true;
+  bool get_trigger_info = false;
   bool get_detector_info = true;
   bool get_dEdx_info = true;
-  float pid_frac = 0.4;
+  float pid_frac = 0.6;
   bool constrain_lambda_mass = true;
+
+  //Used
+  float lf_cuts_setMinDIRA{0.99};
+  float lf_cuts_setDecayLengthRange_min{0.05};
+  float lf_cuts_setMinimumTrackIP_XY{0.05};
+  float lf_cuts_setMinMVTXhits{1};
+  float lf_cuts_setMinINTThits{1};
+  float lf_cuts_setMinTPChits{20};
+  float lf_cuts_setMaximumVertexchi2nDOF{20};
+  float lf_cuts_setMaximumDaughterDCA{0.5};
+
+  //Unused
+  float lf_cuts_setMotherIPchi2{FLT_MAX};
+  float lf_cuts_setFlightDistancechi2{-1.};
+  float lf_cuts_setMinDIRA_XY{-1.1};
+  float lf_cuts_setDecayLengthRange_max{FLT_MAX};
+  float lf_cuts_setDecayLengthRange_XY_min{-10.};
+  float lf_cuts_setDecayLengthRange_XY_max{FLT_MAX};
+  float lf_cuts_setDecayTimeRange_XY_min{-10000};
+  float lf_cuts_setDecayTimeRange_XY_max{FLT_MAX};
+  float lf_cuts_setDecayTimeRange_min{-10000};
+  float lf_cuts_setDecayTimeRange_max{FLT_MAX};
+  float lf_cuts_setMinDecayTimeSignificance{-1e5};
+  float lf_cuts_setMinDecayLengthSignificance{-1e5};
+  float lf_cuts_setMinDecayLengthSignificance_XY{-1e5};
+  float lf_cuts_setMinimumTrackPT{0.0};
+  float lf_cuts_setMinimumTrackIPchi2{-1.};
+  float lf_cuts_setMinimumTrackIPchi2_XY{-1.};
+  float lf_cuts_setMinimumTrackIP{-1.};
+  float lf_cuts_setMaximumTrackchi2nDOF{300.};
+  float lf_cuts_setMaximumDaughterDCA_XY{1};
+  float lf_cuts_setMotherPT{0};
+  float lf_cuts_setMaximumMotherVertexVolume{0.1};
 };  // namespace HeavyFlavorReco'
 
 using namespace HeavyFlavorReco;
@@ -103,15 +136,15 @@ void reconstruct_pipi_mass()
   Fun4AllServer *se = Fun4AllServer::instance();
 
   KFParticle_sPHENIX *kfparticle = new KFParticle_sPHENIX(pipi_reconstruction_name);
+  kfparticle->Verbosity(10);
 
   kfparticle->setDecayDescriptor(pipi_decay_descriptor);
-
-  kfparticle->extraolateTracksToSV(false); //To ensure the pT map is accurate
 
   kfparticle->saveOutput(save_kfpntuple);
 
   kfparticle->usePID(use_pid);
   kfparticle->setPIDacceptFraction(pid_frac);
+  kfparticle->get_dEdx_info();
   kfparticle->dontUseGlobalVertex(dont_use_global_vertex);
   kfparticle->requireTrackVertexBunchCrossingMatch(require_track_and_vertex_match);
   kfparticle->getAllPVInfo(save_all_vtx_info);
@@ -126,41 +159,39 @@ void reconstruct_pipi_mass()
 
   //PV to SV cuts
   kfparticle->constrainToPrimaryVertex();
-  kfparticle->setMotherIPchi2(100);
-  kfparticle->setFlightDistancechi2(-1.);
-  kfparticle->setMinDIRA(0.88);
-  kfparticle->setMinDIRA_XY(-1.1);
-  kfparticle->setDecayLengthRange(0.1, FLT_MAX);
-  kfparticle->setDecayLengthRange_XY(-10000, FLT_MAX);
-  kfparticle->setDecayTimeRange_XY(-10000, FLT_MAX);
-  kfparticle->setDecayTimeRange(-10000, FLT_MAX);
-  kfparticle->setMinDecayTimeSignificance(-1e5);
-  kfparticle->setMinDecayLengthSignificance(-1e5);
-  kfparticle->setMinDecayLengthSignificance_XY(-1e5);
-  kfparticle->setMaximumDaughterDCA_XY(100);
+  kfparticle->setMotherIPchi2(lf_cuts_setMotherIPchi2);
+  kfparticle->setFlightDistancechi2(lf_cuts_setFlightDistancechi2);
+  kfparticle->setMinDIRA(lf_cuts_setMinDIRA);
+  kfparticle->setMinDIRA_XY(lf_cuts_setMinDIRA_XY);
+  kfparticle->setDecayLengthRange(lf_cuts_setDecayLengthRange_min, lf_cuts_setDecayLengthRange_max);
+  kfparticle->setDecayLengthRange_XY(lf_cuts_setDecayLengthRange_XY_min, lf_cuts_setDecayLengthRange_XY_max);
+  kfparticle->setDecayTimeRange_XY(lf_cuts_setDecayTimeRange_XY_min, lf_cuts_setDecayTimeRange_XY_max);
+  kfparticle->setDecayTimeRange(lf_cuts_setDecayTimeRange_min, lf_cuts_setDecayTimeRange_max);
+  kfparticle->setMinDecayTimeSignificance(lf_cuts_setMinDecayTimeSignificance);
+  kfparticle->setMinDecayLengthSignificance(lf_cuts_setMinDecayLengthSignificance);
+  kfparticle->setMinDecayLengthSignificance_XY(lf_cuts_setMinDecayLengthSignificance_XY);
 
   //Track parameters
-  kfparticle->setMinimumTrackPT(0.0);
-  kfparticle->setMinimumTrackIPchi2(-1.);
-  kfparticle->setMinimumTrackIPchi2_XY(-1.);
-  kfparticle->setMinimumTrackIP(-1.);
-  kfparticle->setMinimumTrackIP_XY(-100.);
-  kfparticle->setMaximumTrackchi2nDOF(100.);
-  kfparticle->setMinMVTXhits(1);
-  kfparticle->setMinINTThits(1);
-  kfparticle->setMinTPChits(25);
+  kfparticle->setMinimumTrackPT(lf_cuts_setMinimumTrackPT);
+  kfparticle->setMinimumTrackIPchi2(lf_cuts_setMinimumTrackIPchi2);
+  kfparticle->setMinimumTrackIPchi2_XY(lf_cuts_setMinimumTrackIPchi2_XY);
+  kfparticle->setMinimumTrackIP(lf_cuts_setMinimumTrackIP);
+  kfparticle->setMinimumTrackIP_XY(lf_cuts_setMinimumTrackIP_XY);
+  kfparticle->setMaximumTrackchi2nDOF(lf_cuts_setMaximumTrackchi2nDOF);
+  kfparticle->setMinMVTXhits(lf_cuts_setMinMVTXhits);
+  kfparticle->setMinINTThits(lf_cuts_setMinINTThits);
+  kfparticle->setMinTPChits(lf_cuts_setMinTPChits);
 
   //Vertex parameters
-  kfparticle->setMaximumVertexchi2nDOF(20);
-  kfparticle->setMaximumDaughterDCA(0.5);
-  kfparticle->setMaximumDaughterDCA_XY(100);
+  kfparticle->setMaximumVertexchi2nDOF(lf_cuts_setMaximumVertexchi2nDOF);
+  kfparticle->setMaximumDaughterDCA(lf_cuts_setMaximumDaughterDCA);
+  kfparticle->setMaximumDaughterDCA_XY(lf_cuts_setMaximumDaughterDCA_XY);
 
   //Parent parameters
-  kfparticle->setMotherPT(0);
+  kfparticle->setMotherPT(lf_cuts_setMotherPT);
   kfparticle->setMinimumMass(0.40);
   kfparticle->setMaximumMass(0.60);
-  kfparticle->setMaximumMotherVertexVolume(0.1);
-
+  kfparticle->setMaximumMotherVertexVolume(lf_cuts_setMaximumMotherVertexVolume);
   kfparticle->setOutputName(pipi_output_reco_file);
 
   se->registerSubsystem(kfparticle);
@@ -169,7 +200,7 @@ void reconstruct_pipi_mass()
   kfpqa->setKFParticleNodeName(pipi_reconstruction_name);
   kfpqa->enableTrackPtAsymmetry(true); 
   kfpqa->Verbosity(VERBOSITY_HF);
-  se->registerSubsystem(kfpqa);
+  //se->registerSubsystem(kfpqa);
 
 }
 
@@ -184,6 +215,7 @@ void reconstruct_KK_mass()
 
   kfparticle->usePID(use_pid);
   kfparticle->setPIDacceptFraction(pid_frac);
+  kfparticle->get_dEdx_info();
   kfparticle->dontUseGlobalVertex(dont_use_global_vertex);
   kfparticle->requireTrackVertexBunchCrossingMatch(require_track_and_vertex_match);
   kfparticle->getAllPVInfo(save_all_vtx_info);
@@ -238,6 +270,7 @@ void reconstruct_ppi_mass()
 
   kfparticle->usePID(use_pid);
   kfparticle->setPIDacceptFraction(pid_frac);
+  kfparticle->get_dEdx_info();
   kfparticle->dontUseGlobalVertex(dont_use_global_vertex);
   kfparticle->requireTrackVertexBunchCrossingMatch(require_track_and_vertex_match);
   kfparticle->getAllPVInfo(save_all_vtx_info);
@@ -251,35 +284,47 @@ void reconstruct_ppi_mass()
   kfparticle->magFieldFile("FIELDMAP_TRACKING");
 
   //PV to SV cuts
-  kfparticle->constrainToPrimaryVertex(true);
-  kfparticle->setMotherIPchi2(100);
-  kfparticle->setFlightDistancechi2(-1.);
-  kfparticle->setMinDIRA(0.88);
-  kfparticle->setDecayLengthRange(0.1, FLT_MAX);
+  kfparticle->constrainToPrimaryVertex();
+  kfparticle->setMotherIPchi2(lf_cuts_setMotherIPchi2);
+  kfparticle->setFlightDistancechi2(lf_cuts_setFlightDistancechi2);
+  kfparticle->setMinDIRA(lf_cuts_setMinDIRA);
+  kfparticle->setMinDIRA_XY(lf_cuts_setMinDIRA_XY);
+  kfparticle->setDecayLengthRange(lf_cuts_setDecayLengthRange_min, lf_cuts_setDecayLengthRange_max);
+  kfparticle->setDecayLengthRange_XY(lf_cuts_setDecayLengthRange_XY_min, lf_cuts_setDecayLengthRange_XY_max);
+  kfparticle->setDecayTimeRange_XY(lf_cuts_setDecayTimeRange_XY_min, lf_cuts_setDecayTimeRange_XY_max);
+  kfparticle->setDecayTimeRange(lf_cuts_setDecayTimeRange_min, lf_cuts_setDecayTimeRange_max);
+  kfparticle->setMinDecayTimeSignificance(lf_cuts_setMinDecayTimeSignificance);
+  kfparticle->setMinDecayLengthSignificance(lf_cuts_setMinDecayLengthSignificance);
+  kfparticle->setMinDecayLengthSignificance_XY(lf_cuts_setMinDecayLengthSignificance_XY);
 
   //Track parameters
-  kfparticle->setMinimumTrackPT(0.1);
-  kfparticle->setMinimumTrackIP_XY(0.05);
-  kfparticle->setMinTPChits(25);
-  kfparticle->setMinMVTXhits(1);
-  kfparticle->setMinINTThits(0);
+  kfparticle->setMinimumTrackPT(lf_cuts_setMinimumTrackPT);
+  kfparticle->setMinimumTrackIPchi2(lf_cuts_setMinimumTrackIPchi2);
+  kfparticle->setMinimumTrackIPchi2_XY(lf_cuts_setMinimumTrackIPchi2_XY);
+  kfparticle->setMinimumTrackIP(lf_cuts_setMinimumTrackIP);
+  kfparticle->setMinimumTrackIP_XY(lf_cuts_setMinimumTrackIP_XY);
+  kfparticle->setMaximumTrackchi2nDOF(lf_cuts_setMaximumTrackchi2nDOF);
+  kfparticle->setMinMVTXhits(lf_cuts_setMinMVTXhits);
+  kfparticle->setMinINTThits(lf_cuts_setMinINTThits);
+  kfparticle->setMinTPChits(lf_cuts_setMinTPChits);
 
   //Vertex parameters
-  kfparticle->setMaximumVertexchi2nDOF(20);
-  kfparticle->setMaximumDaughterDCA(0.5);
-  kfparticle->setMaximumDaughterDCA_XY(100);
+  kfparticle->setMaximumVertexchi2nDOF(lf_cuts_setMaximumVertexchi2nDOF);
+  kfparticle->setMaximumDaughterDCA(lf_cuts_setMaximumDaughterDCA);
+  kfparticle->setMaximumDaughterDCA_XY(lf_cuts_setMaximumDaughterDCA_XY);
 
   //Parent parameters
-  kfparticle->setMotherPT(0);
+  kfparticle->setMotherPT(lf_cuts_setMotherPT);
   kfparticle->setMinimumMass(1.08);
   kfparticle->setMaximumMass(1.15);
-  kfparticle->setMaximumMotherVertexVolume(0.1);
+  kfparticle->setMaximumMotherVertexVolume(lf_cuts_setMaximumMotherVertexVolume);
+  kfparticle->setOutputName(ppi_output_reco_file);
 
   se->registerSubsystem(kfparticle);
 
   QAKFParticle *kfpqa = new QAKFParticle("QAKFParticle_Lambda0","Lambda0",1.08,1.15);
   kfpqa->setKFParticleNodeName(ppi_reconstruction_name);
-  se->registerSubsystem(kfpqa);
+  //se->registerSubsystem(kfpqa);
 }
 
 void reconstruct_Kpi_mass()
@@ -294,6 +339,7 @@ void reconstruct_Kpi_mass()
 
   kfparticle->usePID(use_pid);
   kfparticle->setPIDacceptFraction(pid_frac);
+  kfparticle->get_dEdx_info();
   kfparticle->dontUseGlobalVertex(dont_use_global_vertex);
   kfparticle->requireTrackVertexBunchCrossingMatch(require_track_and_vertex_match);
   kfparticle->getAllPVInfo(save_all_vtx_info);
@@ -307,38 +353,48 @@ void reconstruct_Kpi_mass()
   kfparticle->magFieldFile("FIELDMAP_TRACKING");
 
   //PV to SV cuts
-  kfparticle->constrainToPrimaryVertex(true);
-  kfparticle->setMotherIPchi2(100);
-  kfparticle->setMotherIP(100);
-  kfparticle->setMotherIP_XY(0.005);
-  kfparticle->setFlightDistancechi2(5);
-  kfparticle->setMinDIRA(0.9);
+  kfparticle->constrainToPrimaryVertex();
+  //kfparticle->setMotherIPchi2(100);
+  kfparticle->setMotherIPchi2(FLT_MAX);
+  kfparticle->setFlightDistancechi2(-1.);
+  kfparticle->setMinDIRA(0.95);
   kfparticle->setMinDIRA_XY(-1.1);
-  kfparticle->setDecayLengthRange_XY(0.005, FLT_MAX);
+  kfparticle->setDecayLengthRange(0., FLT_MAX);
+  kfparticle->setDecayLengthRange_XY(-10., FLT_MAX);
+  kfparticle->setDecayTimeRange_XY(-10000, FLT_MAX);
+  kfparticle->setDecayTimeRange(-10000, FLT_MAX);
+  kfparticle->setMinDecayTimeSignificance(-1e5);
+  kfparticle->setMinDecayLengthSignificance(-1e5);
+  kfparticle->setMinDecayLengthSignificance_XY(-1e5);
 
   //Track parameters
-  kfparticle->setMinimumTrackPT(0.2);
+  kfparticle->setMinimumTrackPT(0.0);
+  kfparticle->setMinimumTrackIPchi2(-1.);
+  kfparticle->setMinimumTrackIPchi2_XY(-1.);
+  kfparticle->setMinimumTrackIP(-1.);
+  kfparticle->setMinimumTrackIP_XY(0.005);
   kfparticle->setMaximumTrackchi2nDOF(300.);
-  kfparticle->setMinTPChits(25);
   kfparticle->setMinMVTXhits(1);
-  kfparticle->setMinINTThits(0);
+  kfparticle->setMinINTThits(1);
+  kfparticle->setMinTPChits(20);
 
   //Vertex parameters
   kfparticle->setMaximumVertexchi2nDOF(20);
   kfparticle->setMaximumDaughterDCA(0.1);
-  kfparticle->setMaximumDaughterDCA_XY(100); //5 mm
+  kfparticle->setMaximumDaughterDCA_XY(100);
 
   //Parent parameters
-  kfparticle->setMotherPT(0.0);
+  kfparticle->setMotherPT(0);
   kfparticle->setMinimumMass(1.75);
   kfparticle->setMaximumMass(1.95);
   kfparticle->setMaximumMotherVertexVolume(0.1);
+  kfparticle->setOutputName(Kpi_output_reco_file);
 
   se->registerSubsystem(kfparticle);
 
   QAKFParticle *kfpqa = new QAKFParticle("QAKFParticle_D0","D0",1.75,1.95);
   kfpqa->setKFParticleNodeName(Kpi_reconstruction_name);
-  se->registerSubsystem(kfpqa);
+  //se->registerSubsystem(kfpqa);
 }
 
 void end_kfparticle(std::string full_file_name, std::string final_path)

@@ -5,12 +5,12 @@ run=$1
 dirStart=${run:0:3}
 dirEnd=$(($dirStart + 1))
 
-runSpecies=run2pp
-buildTag=ana506_2024p023_v001
-dstType=DST_TRKR_TRACKS
+runSpecies=run3pp
+buildTag=ana538_2025p011_v001
+dstType=DST_TRKR_SEED
 
 directory=DIRECTORY
-if [[ "${runSpecies}" == "run3auau" || "${runSpecies}" == "run3pp" ]]; then
+if [[ "${runSpecies}" == "run3auau" || "${runSpecies}" == "run3pp"  || "${runSpecies}" == "run3oo" ]]; then
   directory=/sphenix/lustre01/sphnxpro/production/${runSpecies}/physics/${buildTag}/${dstType}/run_000${dirStart}00_000${dirEnd}00/
 fi
 if [[ "${runSpecies}" == "run2pp" ]]; then
@@ -20,11 +20,11 @@ fi
 fileHeader=${dstType}_${runSpecies}_${buildTag}-000${run}-
 filePath=${directory}${fileHeader}
 
-totalLargeSegments=1 #$(ls -1 ${filePath}*000.root | wc -l)
+totalLargeSegments=$(ls -1 ${filePath}*000.root | wc -l)
 totalLargeSegments=$((${totalLargeSegments} - 1))
 
-nTotal=10000 #10000 events per segment
-nEvents=5000 # nEvents per job
+nTotal=1000 #10000 events per segment
+nEvents=${nTotal} # nEvents per job
 nSkips=$((($nTotal / $nEvents) - 1))
 
 outDir=fileLists
@@ -35,7 +35,7 @@ fi
 
 for largeSegment in $(seq 0 $totalLargeSegments)
 do
-  largeSegment=$(printf "%01d" $largeSegment)
+  largeSegment=$(printf "%02d" $largeSegment)
   fileNames=${filePath}${largeSegment}*.root
 
   nDSTs=$(ls -1 ${fileNames} | wc -l)
@@ -52,15 +52,15 @@ do
   fileCounter=0
   for i in $(seq 0 $nDSTs)
   do
-    smallSegment=$(printf "%05d" $fileCounter)
-    checkFile=${filePath}${smallSegment}.root
-    #checkFile=${filePath}${largeSegment}${smallSegment}.root
+    smallSegment=$(printf "%03d" $fileCounter)
+    #checkFile=${filePath}${smallSegment}.root
+    checkFile=${filePath}${largeSegment}${smallSegment}.root
     while [[ ! -f ${checkFile} ]]
     do
       ((fileCounter++))
-      smallSegment=$(printf "%05d" $fileCounter)
-      checkFile=${filePath}${smallSegment}.root
-      #checkFile=${filePath}${largeSegment}${smallSegment}.root
+      smallSegment=$(printf "%03d" $fileCounter)
+      #checkFile=${filePath}${smallSegment}.root
+      checkFile=${filePath}${largeSegment}${smallSegment}.root
     done
 
     DST=$(realpath ${checkFile} | awk -F '/' '{print $NF}' ) 
@@ -70,8 +70,8 @@ do
     do
       startEvent=$(($i*$nEvents))
 
-      #echo "${nEvents} ${DST} ${directory} ${startEvent}" >> ${outFile}
-      echo "${nEvents} ${DST} ${startEvent}" >> ${outFile}
+      echo "${nEvents} ${DST} ${directory} ${startEvent}" >> ${outFile}
+      #echo "${nEvents} ${DST} ${startEvent}" >> ${outFile}
 
     done
  

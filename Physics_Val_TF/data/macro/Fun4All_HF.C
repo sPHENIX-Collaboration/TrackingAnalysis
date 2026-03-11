@@ -88,11 +88,13 @@ void CheckDstType(const std::string inputDST)
 
 void Fun4All_HF(
     const int nEvents = 500,//
-    const std::string inputDST = "/sphenix/lustre01/sphnxpro/production/run2pp/physics/ana506_2024p023_v001/DST_TRKR_TRACKS/run_00053800_00053900/dst/DST_TRKR_TRACKS_run2pp_ana506_2024p023_v001-00053877-00000.root",//
-    const std::string outDir = "./",//
+    const std::string inputDST = "/sphenix/lustre01/sphnxpro/production/run2pp/physics/ana506_2024p023_v001/DST_TRKR_TRACKS/run_00053800_00053900/dst/DST_TRKR_TRACKS_run2pp_ana506_2024p023_v001-00053877-00000.root",
+    const std::string inputDir = "",
     const int nSkip = 0,//
     const bool convertSeeds = false)//
 {
+  output_dir = "/sphenix/user/cdean/software/TrackingAnalysis/Physics_Val_TF/data/macro/pp/ana538_2025p011_v001/seeds/";//outDir;
+
   auto se = Fun4AllServer::instance();
   se->Verbosity(1);
 
@@ -146,8 +148,11 @@ void Fun4All_HF(
 
     CheckDstType(inputDST);
 
+    std::string inputTrackFile = inputDST;
+    //std::string inputTrackFile = inputDir + "/" + inputDST;
+
     auto *hitsin = new Fun4AllDstInputManager("InputManager");
-    hitsin->fileopen(inputDST);
+    hitsin->fileopen(inputTrackFile);
     se->registerInputManager(hitsin);
   }
 
@@ -167,28 +172,6 @@ void Fun4All_HF(
 
   std::stringstream nice_skip;
   nice_skip << std::setw(5) << std::setfill('0') << to_string(nSkip);
-
-  if (get_trigger_info)
-  {
-    std::string gl1_file = "/sphenix/lustre01/sphnxpro/production/run2pp/physics/ana479_nocdbtag_v001/DST_STREAMING_EVENT_INTT0/run_"
-                         + nice_rounded_down.str() + "_" + nice_rounded_up.str()
-                         + "/dst/DST_STREAMING_EVENT_INTT0_run2pp_ana479_nocdbtag_v001-" + nice_runnumber.str() + "-" + nice_segment.str() + ".root";
-
-    auto hitsintrig = new Fun4AllDstInputManager("TriggerInputManager");
-    hitsintrig->fileopen(gl1_file);
-    se->registerInputManager(hitsintrig);
-  }
-
-  if (get_dEdx_info || get_detector_info)
-  {
-    std::string clus_file = "/sphenix/lustre01/sphnxpro/production/run2pp/physics/ana505_2024p023_v001/DST_TRKR_CLUSTER/run_"
-                          + nice_rounded_down.str() + "_" + nice_rounded_up.str()
-                          + "/dst/DST_TRKR_CLUSTER_run2pp_ana505_2024p023_v001-" + nice_runnumber.str() + "-" + nice_segment.str() + ".root";
-
-    auto hitsinclus = new Fun4AllDstInputManager("ClusterInputManager");
-    hitsinclus->fileopen(clus_file);
-    se->registerInputManager(hitsinclus);
-  }
 
   auto rc = recoConsts::instance();
   rc->set_IntFlag("RUNNUMBER", runnumber);
@@ -246,7 +229,6 @@ void Fun4All_HF(
   G4MAGNET::magfield_rescale = 1;
   TrackingInit();
 
-  output_dir = "./"; //Top dir of where the output nTuples will be written
   trailer = "_" + nice_runnumber.str() + "_" + nice_segment.str() + "_" + nice_skip.str() + ".root";
 
   if (DoUnpacking)
@@ -359,7 +341,7 @@ void Fun4All_HF(
 
   if (DoFitting)
   {
-    Tracking_Reco_TrackMatching_run2pp();
+    Tracking_Reco_TrackMatching_run2pp("TRKR_CLUSTER_SEED");
 
     G4TRACKING::convert_seeds_to_svtxtracks = convertSeeds;
     std::cout << "Converting to seeds : " << G4TRACKING::convert_seeds_to_svtxtracks << std::endl;
@@ -379,18 +361,17 @@ void Fun4All_HF(
     }
     else
     {
-      Tracking_Reco_TrackFit_run2pp();
+      Tracking_Reco_TrackFit_run2pp("outfile.root", "TRKR_CLUSTER_SEED");
     }
 
     //vertexing and propagation to vertex
-    Tracking_Reco_Vertex_run2pp();
+    Tracking_Reco_Vertex_run2pp("TRKR_CLUSTER_SEED");
 
     se->registerSubsystem(new TpcSiliconQA);
     se->registerSubsystem(new TrackFittingQA);
     se->registerSubsystem(new VertexQA);
   }
 
-  output_dir = outDir;
 
   if (run_pipi_reco) create_hf_directories(pipi_reconstruction_name, pipi_output_dir, pipi_output_reco_file);
   if (run_Kpi_reco) create_hf_directories(Kpi_reconstruction_name, Kpi_output_dir, Kpi_output_reco_file);

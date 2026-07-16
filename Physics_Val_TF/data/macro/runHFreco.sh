@@ -15,31 +15,37 @@ export PATH="$HOME/.local/bin:$PATH"
 
 source /opt/sphenix/core/bin/setup_local.sh $MYINSTALL
 
-#this_script=$BASH_SOURCE
-#this_script=`readlink -f $this_script`
-#this_dir=`dirname $this_script`
-#echo rsyncing from $this_dir
-#echo running: $this_script $*
+useScratch=false
 
-#if [[ ! -z "$_CONDOR_SCRATCH_DIR" && -d $_CONDOR_SCRATCH_DIR ]]
-#then
-#  cd $_CONDOR_SCRATCH_DIR
-#  rsync -av $this_dir/* .
-#else
-#  echo condor scratch NOT set
-#  exit -1
-#fi
+if ${useScratch}=true; then
+  this_script=$BASH_SOURCE
+  this_script=`readlink -f $this_script`
+  this_dir=`dirname $this_script`
+  echo rsyncing from $this_dir
+  echo running: $this_script $*
+  
+  if [[ ! -z "$_CONDOR_SCRATCH_DIR" && -d $_CONDOR_SCRATCH_DIR ]]
+  then
+    cd $_CONDOR_SCRATCH_DIR
+    rsync -av $this_dir/* .
+  else
+    echo condor scratch NOT set
+    exit -1
+  fi
+fi
 
 nEvents=$1
 inDst=$2
 inDir=$3
 nSkip=$4
 
-#if [[ "${inDst}" == *.root ]]; then
-#  getinputfiles.pl $inDst
-#elif [[ "${inDst}" == *.list ]]; then
-#  getinputfiles.pl --filelist $inDst
-#fi
+if ${useScratch}=true; then
+  if [[ "${inDst}" == *.root ]]; then
+    getinputfiles.pl $inDst
+  elif [[ "${inDst}" == *.list ]]; then
+    getinputfiles.pl --filelist $inDst
+  fi
+fi
 
 # print the environment - needed for debugging
 #printenv

@@ -6,7 +6,7 @@ dirStart=${run:0:3}
 dirEnd=$(($dirStart + 1))
 
 runSpecies=run3pp
-buildTag=ana538_2025p011_v001
+buildTag=ana533_2025p009_v001
 dstType=DST_TRKR_SEED
 
 directory=DIRECTORY

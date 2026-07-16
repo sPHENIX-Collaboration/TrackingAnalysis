@@ -7,9 +7,9 @@ get_closest_numbers() {
     echo "$lower $upper"
 }
 
-runspecies='run2pp'
+runspecies='run3pp'
 runtype='physics'
-anabuild='ana479'
+anabuild='new'
 cdbtag='nocdbtag'
 version='v001'
 
@@ -181,7 +181,7 @@ do
 
     ebdc=39
     #echo "${path}/DST_STREAMING_EVENT_${subsystem}${ebdc}/run_000${numlower}_000${numupper}/DST_STREAMING_EVENT_${subsystem}_${runspecies}_${anabuild}_${cdbtag}_${version}-000${run}-${segment}.root" >> ${out}
-    echo "DST_STREAMING_EVENT_${subsystem}_${runspecies}_${anabuild}_${cdbtag}_${version}-000${run}-${segment}.root" >> ${out}
+    echo "DST_STREAMING_EVENT_${subsystem}${ebdc}_${runspecies}_${anabuild}_${cdbtag}_${version}-000${run}-${segment}.root" >> ${out}
   fi
 
   if [[ "${runspecies}" == "run2pp" ]]; then

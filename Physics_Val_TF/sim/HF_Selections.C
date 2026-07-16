@@ -144,7 +144,7 @@ void reconstruct_mb_mass()
 
   //PV to SV cuts
   kfparticle->constrainToPrimaryVertex(true);
-  kfparticle->setMotherIPchi2(1000);
+  kfparticle->setMotherPV_DCA_StdDev(1000);
   kfparticle->setFlightDistancechi2(-1.);
   kfparticle->setMinDIRA(-1.1); //was .95
   kfparticle->setDecayLengthRange(-0.1, FLT_MAX); //was 0.1 min
@@ -159,10 +159,10 @@ void reconstruct_mb_mass()
 
   //Track parameters
   kfparticle->setMinimumTrackPT(0.0);
-  kfparticle->setMinimumTrackIPchi2(-1.);
-  kfparticle->setMinimumTrackIP(-1.);
-  kfparticle->setMinimumTrackIPchi2_XY(-1.);
-  kfparticle->setMinimumTrackIP_XY(-1000.);
+  kfparticle->setMinimumTrackPV_DCA_StdDev(-1.);
+  kfparticle->setMinimumTrackPV_DCA(-1.);
+  kfparticle->setMinimumTrackPV_DCA_StdDev_XY(-1.);
+  kfparticle->setMinimumTrackPV_DCA_XY(-1000.);
   kfparticle->setMaximumTrackchi2nDOF(1000.);
   kfparticle->setMinINTThits(0);
   kfparticle->setMinMVTXhits(0);
@@ -210,7 +210,7 @@ void reconstruct_pipi_mass()
 
   //PV to SV cuts
   kfparticle->constrainToPrimaryVertex(true);
-  kfparticle->setMotherIPchi2(100);
+  kfparticle->setMotherPV_DCA_StdDev(100);
   kfparticle->setFlightDistancechi2(-1.);
   kfparticle->setMinDIRA(-1);
   //kfparticle->setMinDIRA(0.999);
@@ -218,8 +218,8 @@ void reconstruct_pipi_mass()
 
   //Track parameters
   kfparticle->setMinimumTrackPT(0.0);
-  kfparticle->setMinimumTrackIPchi2(-1.);
-  kfparticle->setMinimumTrackIP(-1.);
+  kfparticle->setMinimumTrackPV_DCA_StdDev(-1.);
+  kfparticle->setMinimumTrackPV_DCA(-1.);
   kfparticle->setMaximumTrackchi2nDOF(100.);
   kfparticle->setMinTPChits(25);
 
@@ -266,7 +266,7 @@ void reconstruct_pipi_mass()
 
   //PV to SV cuts
   kfparticle->constrainToPrimaryVertex(true);
-  kfparticle->setMotherIPchi2(1000);
+  kfparticle->setMotherPV_DCA_StdDev(1000);
   kfparticle->setFlightDistancechi2(-1.);
   kfparticle->setMinDIRA(-1.1); //was .95
   kfparticle->setDecayLengthRange(-0.1, FLT_MAX); //was 0.1 min
@@ -281,10 +281,10 @@ void reconstruct_pipi_mass()
 
   //Track parameters
   kfparticle->setMinimumTrackPT(0.0);
-  kfparticle->setMinimumTrackIPchi2(-1.);
-  kfparticle->setMinimumTrackIP(-1.);
-  kfparticle->setMinimumTrackIPchi2_XY(-1.);
-  kfparticle->setMinimumTrackIP_XY(-1000.);
+  kfparticle->setMinimumTrackPV_DCA_StdDev(-1.);
+  kfparticle->setMinimumTrackPV_DCA(-1.);
+  kfparticle->setMinimumTrackPV_DCA_StdDev_XY(-1.);
+  kfparticle->setMinimumTrackPV_DCA_XY(-1000.);
   kfparticle->setMaximumTrackchi2nDOF(1000.);
   kfparticle->setMinINTThits(0);
   kfparticle->setMinMVTXhits(0);
@@ -337,15 +337,15 @@ void reconstruct_Kpi_mass()
 
   //PV to SV cuts
   kfparticle->constrainToPrimaryVertex(true);
-  kfparticle->setMotherIPchi2(100);
+  kfparticle->setMotherPV_DCA_StdDev(100);
   kfparticle->setFlightDistancechi2(-1.);
   kfparticle->setMinDIRA(0.985);
   kfparticle->setDecayLengthRange(0.008, FLT_MAX);
 
   //Track parameters
   kfparticle->setMinimumTrackPT(0.2);
-  kfparticle->setMinimumTrackIPchi2(-1.);
-  kfparticle->setMinimumTrackIP(-1);
+  kfparticle->setMinimumTrackPV_DCA_StdDev(-1.);
+  kfparticle->setMinimumTrackPV_DCA(-1);
   kfparticle->setMaximumTrackchi2nDOF(100.);
   kfparticle->setMinTPChits(25);
   kfparticle->setMinMVTXhits(3);
@@ -391,15 +391,15 @@ void reconstruct_Kpi_mass()
   
   //PV to SV cuts
   kfparticle->constrainToPrimaryVertex(true);
-  kfparticle->setMotherIPchi2(100);
+  kfparticle->setMotherPV_DCA_StdDev(100);
   kfparticle->setFlightDistancechi2(-1.);
   kfparticle->setMinDIRA(0.88); //was .95
   kfparticle->setDecayLengthRange(-0.1, FLT_MAX); //was 0.1 min
 
   //Track parameters
   kfparticle->setMinimumTrackPT(0.0);
-  kfparticle->setMinimumTrackIPchi2(-1.);
-  kfparticle->setMinimumTrackIP(-1.);
+  kfparticle->setMinimumTrackPV_DCA_StdDev(-1.);
+  kfparticle->setMinimumTrackPV_DCA(-1.);
   kfparticle->setMaximumTrackchi2nDOF(100.);
   kfparticle->setMinINTThits(0);
   kfparticle->setMinMVTXhits(0);
@@ -446,7 +446,7 @@ void reconstruct_Kpipi_mass()
 
   //PV to SV cuts
   kfparticle->constrainToPrimaryVertex(true);
-  kfparticle->setMotherIPchi2(1000);
+  kfparticle->setMotherPV_DCA_StdDev(1000);
   kfparticle->setFlightDistancechi2(-1.);
   kfparticle->setMinDIRA(-1.1); //was .95
   kfparticle->setDecayLengthRange(-0.1, FLT_MAX); //was 0.1 min
@@ -461,10 +461,10 @@ void reconstruct_Kpipi_mass()
 
   //Track parameters
   kfparticle->setMinimumTrackPT(0.0);
-  kfparticle->setMinimumTrackIPchi2(-1.);
-  kfparticle->setMinimumTrackIP(-1.);
-  kfparticle->setMinimumTrackIPchi2_XY(-1.);
-  kfparticle->setMinimumTrackIP_XY(-1000.);
+  kfparticle->setMinimumTrackPV_DCA_StdDev(-1.);
+  kfparticle->setMinimumTrackPV_DCA(-1.);
+  kfparticle->setMinimumTrackPV_DCA_StdDev_XY(-1.);
+  kfparticle->setMinimumTrackPV_DCA_XY(-1000.);
   kfparticle->setMaximumTrackchi2nDOF(1000.);
   kfparticle->setMinINTThits(0);
   kfparticle->setMinMVTXhits(0);
@@ -512,7 +512,7 @@ void reconstruct_KKpi_mass()
 
   //PV to SV cuts
   kfparticle->constrainToPrimaryVertex(true);
-  kfparticle->setMotherIPchi2(1000);
+  kfparticle->setMotherPV_DCA_StdDev(1000);
   kfparticle->setFlightDistancechi2(-1.);
   kfparticle->setMinDIRA(-1.1); //was .95
   kfparticle->setDecayLengthRange(-1*FLT_MAX, FLT_MAX); //was 0.1 min
@@ -527,10 +527,10 @@ void reconstruct_KKpi_mass()
 
   //Track parameters
   kfparticle->setMinimumTrackPT(0.0);
-  kfparticle->setMinimumTrackIPchi2(-1.);
-  kfparticle->setMinimumTrackIP(-1.);
-  kfparticle->setMinimumTrackIPchi2_XY(-1.);
-  kfparticle->setMinimumTrackIP_XY(-1000.);
+  kfparticle->setMinimumTrackPV_DCA_StdDev(-1.);
+  kfparticle->setMinimumTrackPV_DCA(-1.);
+  kfparticle->setMinimumTrackPV_DCA_StdDev_XY(-1.);
+  kfparticle->setMinimumTrackPV_DCA_XY(-1000.);
   kfparticle->setMaximumTrackchi2nDOF(1000.);
   kfparticle->setMinINTThits(0);
   kfparticle->setMinMVTXhits(0);
@@ -613,7 +613,7 @@ void reconstruct_pKpi_mass()
 
   //PV to SV cuts
   kfparticle->constrainToPrimaryVertex(true);
-  kfparticle->setMotherIPchi2(1000);
+  kfparticle->setMotherPV_DCA_StdDev(1000);
   kfparticle->setFlightDistancechi2(-1.);
   kfparticle->setMinDIRA(-1.1); //was .95
   kfparticle->setDecayLengthRange(-0.1, FLT_MAX); //was 0.1 min
@@ -628,10 +628,10 @@ void reconstruct_pKpi_mass()
 
   //Track parameters
   kfparticle->setMinimumTrackPT(0.0);
-  kfparticle->setMinimumTrackIPchi2(-1.);
-  kfparticle->setMinimumTrackIP(-1.);
-  kfparticle->setMinimumTrackIPchi2_XY(-1.);
-  kfparticle->setMinimumTrackIP_XY(-1000.);
+  kfparticle->setMinimumTrackPV_DCA_StdDev(-1.);
+  kfparticle->setMinimumTrackPV_DCA(-1.);
+  kfparticle->setMinimumTrackPV_DCA_StdDev_XY(-1.);
+  kfparticle->setMinimumTrackPV_DCA_XY(-1000.);
   kfparticle->setMaximumTrackchi2nDOF(1000.);
   kfparticle->setMinINTThits(0);
   kfparticle->setMinMVTXhits(0);

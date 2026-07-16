@@ -378,7 +378,7 @@ void KFPReco(std::string module_name = "KFPReco", std::string decaydescriptor = 
   kfparticle->saveDST();
 
   kfparticle->constrainToPrimaryVertex(true);
-  kfparticle->setMotherIPchi2(FLT_MAX);
+  kfparticle->setMotherPV_DCA_StdDev(FLT_MAX);
   kfparticle->setFlightDistancechi2(-1.);
   kfparticle->setMinDIRA(-1.1);
   kfparticle->setDecayLengthRange(0., FLT_MAX);
@@ -390,8 +390,8 @@ void KFPReco(std::string module_name = "KFPReco", std::string decaydescriptor = 
   kfparticle->setMinTPChits(20);
   kfparticle->setMinimumTrackPT(0.2);
   kfparticle->setMaximumTrackPTchi2(FLT_MAX);
-  kfparticle->setMinimumTrackIPchi2(-1.);
-  kfparticle->setMinimumTrackIP(-1.);
+  kfparticle->setMinimumTrackPV_DCA_StdDev(-1.);
+  kfparticle->setMinimumTrackPV_DCA(-1.);
   kfparticle->setMaximumTrackchi2nDOF(100.);
 
   //Vertex parameters

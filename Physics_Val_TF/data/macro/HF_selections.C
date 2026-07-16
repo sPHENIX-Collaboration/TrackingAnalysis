@@ -75,6 +75,39 @@ namespace HeavyFlavorReco
   float cemc_proj_radius = 102.9; //Virgile recommendation according to DetailedCalorimeterGeometry
   bool constrain_lambda_mass = true;
   bool extraolate_tracks_to_secondary_vertex = false; // Set to false to ensure the pT map is accurate for asymmetry study
+
+  //Used
+  float lf_cuts_setMinDIRA{0.99};
+  float lf_cuts_setDecayLengthRange_min{0.05};
+  float lf_cuts_setMinimumTrackIP_XY{0.05};
+  float lf_cuts_setMinMVTXhits{1};
+  float lf_cuts_setMinINTThits{1};
+  float lf_cuts_setMinTPChits{20};
+  float lf_cuts_setMaximumVertexchi2nDOF{20};
+  float lf_cuts_setMaximumDaughterDCA{0.5};
+
+  //Unused
+  float lf_cuts_setMotherIPchi2{FLT_MAX};
+  float lf_cuts_setFlightDistancechi2{-1.};
+  float lf_cuts_setMinDIRA_XY{-1.1};
+  float lf_cuts_setDecayLengthRange_max{FLT_MAX};
+  float lf_cuts_setDecayLengthRange_XY_min{-10.};
+  float lf_cuts_setDecayLengthRange_XY_max{FLT_MAX};
+  float lf_cuts_setDecayTimeRange_XY_min{-10000};
+  float lf_cuts_setDecayTimeRange_XY_max{FLT_MAX};
+  float lf_cuts_setDecayTimeRange_min{-10000};
+  float lf_cuts_setDecayTimeRange_max{FLT_MAX};
+  float lf_cuts_setMinDecayTimeSignificance{-1e5};
+  float lf_cuts_setMinDecayLengthSignificance{-1e5};
+  float lf_cuts_setMinDecayLengthSignificance_XY{-1e5};
+  float lf_cuts_setMinimumTrackPT{0.0};
+  float lf_cuts_setMinimumTrackIPchi2{-1.};
+  float lf_cuts_setMinimumTrackIPchi2_XY{-1.};
+  float lf_cuts_setMinimumTrackIP{-1.};
+  float lf_cuts_setMaximumTrackchi2nDOF{300.};
+  float lf_cuts_setMaximumDaughterDCA_XY{1};
+  float lf_cuts_setMotherPT{0};
+  float lf_cuts_setMaximumMotherVertexVolume{0.1};
 };  // namespace HeavyFlavorReco'
 
 using namespace HeavyFlavorReco;

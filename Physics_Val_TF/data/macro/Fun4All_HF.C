@@ -253,7 +253,7 @@ void Fun4All_HF(const int nEvents = 500,                                        
     se->registerInputManager(ingeo);
 
     // set flags
-    TRACKING::pp_mode = true;
+    TRACKING::streaming_mode = true;
 
     Enable::MVTX_APPLYMISALIGNMENT = true;
     ACTSGEOM::mvtx_applymisalignment = Enable::MVTX_APPLYMISALIGNMENT;

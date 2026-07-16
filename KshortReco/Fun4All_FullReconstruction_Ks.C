@@ -170,7 +170,7 @@ cout<<"outfile "<<outfile<<endl;
   kfparticle->useFakePrimaryVertex(false);
 
   kfparticle->constrainToPrimaryVertex(true);
-  kfparticle->setMotherIPchi2(FLT_MAX);
+  kfparticle->setMotherPV_DCA_StdDev(FLT_MAX);
   kfparticle->setFlightDistancechi2(-1.);
   kfparticle->setMinDIRA(-1.1);
   kfparticle->setDecayLengthRange(0., FLT_MAX);
@@ -182,8 +182,8 @@ cout<<"outfile "<<outfile<<endl;
   kfparticle->setMinTPChits(0);
   kfparticle->setMinimumTrackPT(-1.);
   kfparticle->setMaximumTrackPTchi2(FLT_MAX);
-  kfparticle->setMinimumTrackIPchi2(-1.);
-  kfparticle->setMinimumTrackIP(-1.);
+  kfparticle->setMinimumTrackPV_DCA_StdDev(-1.);
+  kfparticle->setMinimumTrackPV_DCA(-1.);
   //kfparticle->setMaximumTrackchi2nDOF(100.);
   kfparticle->setMaximumTrackchi2nDOF(FLT_MAX);
 

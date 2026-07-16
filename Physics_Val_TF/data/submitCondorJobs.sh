@@ -4,7 +4,7 @@ submissionFile=myCondor.job
 
 listDir=fileLists
 
-runs="53783 53756 53877 53876"
+runs="82420"
 
 for run in $runs
 do

@@ -10,7 +10,7 @@ buildTag=ana533_2025p009_v001
 dstType=DST_TRKR_SEED
 
 directory=DIRECTORY
-if [[ "${runSpecies}" == "run3auau" || "${runSpecies}" == "run3pp" ]]; then
+if [[ "${runSpecies}" == "run3auau" || "${runSpecies}" == "run3pp"  || "${runSpecies}" == "run3oo" ]]; then
   directory=/sphenix/lustre01/sphnxpro/production/${runSpecies}/physics/${buildTag}/${dstType}/run_000${dirStart}00_000${dirEnd}00/
 fi
 if [[ "${runSpecies}" == "run2pp" ]]; then
@@ -23,8 +23,8 @@ filePath=${directory}${fileHeader}
 totalLargeSegments=$(ls -1 ${filePath}*000.root | wc -l)
 totalLargeSegments=$((${totalLargeSegments} - 1))
 
-nTotal=10000 #10000 events per segment
-nEvents=5000 # nEvents per job
+nTotal=1000 #10000 events per segment
+nEvents=${nTotal} # nEvents per job
 nSkips=$((($nTotal / $nEvents) - 1))
 
 outDir=fileLists
@@ -70,8 +70,8 @@ do
     do
       startEvent=$(($i*$nEvents))
 
-      #echo "${nEvents} ${DST} ${directory} ${startEvent}" >> ${outFile}
-      echo "${nEvents} ${DST} ${startEvent}" >> ${outFile}
+      echo "${nEvents} ${DST} ${directory} ${startEvent}" >> ${outFile}
+      #echo "${nEvents} ${DST} ${startEvent}" >> ${outFile}
 
     done
  

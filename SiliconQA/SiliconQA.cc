@@ -130,7 +130,6 @@ void SiliconQA::doQA()
 
   }
 
-  TGraph *gAcceptance = new TGraph();
 
   for (const auto &run : runlist)
   {
@@ -171,10 +170,6 @@ if (f->IsZombie())
       continue;
     }
 
-    double acceptance = std::get<1>(*inttqaresult);
-
-    int p = gAcceptance->GetN();
-    gAcceptance->SetPoint(p, runnumber, acceptance);
     // ================================================================
 
     // =========================  Do MVTX QA  =========================

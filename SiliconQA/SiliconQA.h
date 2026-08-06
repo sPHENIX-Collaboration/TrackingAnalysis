@@ -43,13 +43,15 @@ public:
 
     void GoldenRuns(){b_goldenruns = true;};
 
+    void SetProductionTag(const std::string& productionTag){_productionTag = productionTag;};
+
 private:
 
     float rawHitAcceptance(TH2 *h2);
     std::tuple<float, float, float, float> fitClusPhi(TH1F *hm);
     void getLTSRegStdDev(TGraphErrors *graph, float fit, float &stddev);
     std::optional<std::tuple<bool, float, float>> inttQA(TFile* qafile);
-    std::optional<std::tuple<float, float, float, float, float, float, float>> mvtxQA(TFile* qafile_hit, TFile *qafile_clust);
+    std::optional<std::tuple<float, float, float, float, float, float, float>> mvtxQA(TFile* qafile);
 
     std::unordered_set<int> processed_runs;
     std::map<int, std::tuple<bool, float, float>> map_inttQA;
@@ -57,13 +59,14 @@ private:
     std::map<int, std::tuple<float, float>> map_goodsiliconruns;
     std::map<std::string, std::vector<int>> map_allsiliconruns_categories;
 
-    std::map<int, std::string> map_inputfile_hit;
-    std::map<int, std::string> map_inputfile_clust;
+    std::map<int, std::string> map_inputfile;
 
     std::string _inputbasedir = "/sphenix/data/data02/sphnxpro/QAhtml/aggregated";
     std::string _markdownfilename = "README.md";
     std::string _datfilename = "goodruns_silicon.dat";
     std::string _datrankedfilename = "goodruns_silicon_ranked.dat";
+
+    std::string _productionTag = "ana561_2025p013_v001";
 
     int runnumber;
     bool b_goldenruns = false;

@@ -1,7 +1,6 @@
-#include </sphenix/user/kgable/TrackingAnalysis/SiliconQA/SiliconQA.h>
+#include <SiliconQA.h>
 
-//R__LOAD_LIBRARY(libSiliconQA.so)
-R__LOAD_LIBRARY(/sphenix/user/kgable/TrackingAnalysis/SiliconQA/build/.libs/libSiliconQA.so)
+R__LOAD_LIBRARY(libSiliconQA.so)
 
 void run_SiliconQA()
 {

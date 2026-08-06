@@ -1,6 +1,7 @@
-#include <SiliconQA.h>
+#include </sphenix/user/kgable/TrackingAnalysis/SiliconQA/SiliconQA.h>
 
-R__LOAD_LIBRARY(libSiliconQA.so)
+//R__LOAD_LIBRARY(libSiliconQA.so)
+R__LOAD_LIBRARY(/sphenix/user/kgable/TrackingAnalysis/SiliconQA/build/.libs/libSiliconQA.so)
 
 void run_SiliconQA()
 {
@@ -10,11 +11,12 @@ void run_SiliconQA()
 
     SiliconQA *siliconqa = new SiliconQA();
     
-    // for run selection: 51730-52206, 52469-53880
-    // must be set before GetQAhtml()
-    siliconqa->GoldenRuns();
 
     siliconqa->SetQAhtmlPath(qahtmlpath);
+
+    siliconqa->SetProductionTag("ana561_2025p013_v001");
+
+
     siliconqa->GetQAhtml();
 
     siliconqa->doQA();

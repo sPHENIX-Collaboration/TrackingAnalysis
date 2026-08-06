@@ -11,8 +11,6 @@
 #include <TH1F.h>
 #include <TGraphErrors.h>
 #include <TFile.h>
-#include <TCanvas.h>
-#include <TLine.h>
 
 
 #include <fstream>

@@ -1,0 +1,9 @@
+# Normalization parameters for TPC distortion prediction
+# These values should be used to denormalize the model output
+# Denormalization: distortion = prediction * target_std + target_mean
+
+# target_mean (6 values for: h_nz, h_pz, r_nz, r_pz, z_nz, z_pz)
+target_mean = 2.40481482e-03, 2.71232845e-03, 3.23086157e-02, 2.92694028e-02, 3.81728797e-03, -3.63350334e-03
+
+# target_std (6 values for: h_nz, h_pz, r_nz, r_pz, z_nz, z_pz)
+target_std = 1.11907208e-02, 1.24416174e-02, 1.07677132e-01, 1.16574138e-01, 2.51075458e-02, 2.69109197e-02

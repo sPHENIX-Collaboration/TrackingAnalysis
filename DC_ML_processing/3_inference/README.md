@@ -4,15 +4,15 @@ This directory contains C++ scripts to perform ML inference on TPC charge densit
 
 ## Overview
 
-This step takes the 3D TPC volume from Step 1 and the ONNX model from Step 2 to predict 6-component distortion fields. Two implementations are provided:
+This step takes the 3D TPC volume from Step 1 and the ONNX model from Step 2 to predict 6-component distortion fields. Multiple implementations are provided:
 
-1. **`TPCInference.C`** - ROOT-compatible script (recommended for sPHENIX workflow)
-2. **`tpc_inference_example.cpp`** - Standalone C++ example
+1. **`run_inference.C`** - Automated wrapper script (recommended - easiest to use)
+2. **`TPCInference.C`** - Core inference implementation (can be used manually)
 
 ## Files
 
+- **`run_inference.C`** - Automated wrapper that handles compilation and execution
 - **`TPCInference.C`** - Complete ROOT macro for ONNX inference
-- **`tpc_inference_example.cpp`** - Standalone C++ inference example
 
 ## Prerequisites
 
@@ -42,9 +42,41 @@ source /path/to/root/bin/thisroot.sh
 
 ## Usage with ROOT
 
-### Interactive ROOT Session
+### Method 1: Automated Wrapper (Recommended)
+
+The easiest way to run inference is using the `run_inference.C` wrapper script:
 
 ```bash
+cd 3_inference
+root -l run_inference.C
+```
+
+Or in batch mode (no interactive prompts):
+```bash
+root -l -b -q run_inference.C
+```
+
+**What the wrapper does automatically:**
+- ✅ Checks that required files exist (ONNX model and input data)
+- ✅ Sets up ONNX Runtime include and library paths
+- ✅ Compiles `TPCInference.C` with optimizations (~30 seconds)
+- ✅ Runs inference with default file paths:
+  - Model: `../2_model_export/unet3d_tpc.onnx`
+  - Input: `dc_r_phi_tpcvolume.root`
+  - Output: `distortions_output.root`
+- ✅ Displays progress messages and helpful error messages
+- ✅ Shows visualization instructions when complete
+
+This is the recommended approach for most users as it handles all setup automatically.
+
+---
+
+### Method 2: Manual Execution
+
+For advanced users who need custom file paths or more control:
+
+```bash
+cd 3_inference
 root -l
 ```
 
@@ -54,13 +86,20 @@ Load and compile the script:
 // Load the inference script
 .L TPCInference.C+
 
-// Run inference with paths relative to onnx directory
+// Run inference with custom paths
 RunInference("../2_model_export/unet3d_tpc.onnx",
              "../dc_r_phi_tpcvolume.root",
              "distortions_output.root")
 ```
 
 The `+` flag compiles the script with optimization for better performance.
+
+**Note:** Before using this method, ensure ONNX Runtime paths are set:
+```bash
+export ONNXRUNTIME_DIR=/path/to/onnxruntime
+export LD_LIBRARY_PATH=$ONNXRUNTIME_DIR/lib:$LD_LIBRARY_PATH
+export CPLUS_INCLUDE_PATH=$ONNXRUNTIME_DIR/include:$CPLUS_INCLUDE_PATH
+```
 
 ## Input Format
 

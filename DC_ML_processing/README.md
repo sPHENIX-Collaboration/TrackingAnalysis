@@ -39,7 +39,11 @@ cd ..
 python onnx/2_model_export/export_to_onnx.py
 cd onnx
 
-# Step 3: Run inference
+# Step 3: Run inference (Option 1 - Automated)
+cd 3_inference
+root -l run_inference.C
+
+# Step 3: Run inference (Option 2 - Manual)
 root -l
 .L 3_inference/TPCInference.C+
 RunInference("2_model_export/unet3d_tpc.onnx", "dc_r_phi_tpcvolume.root", "distortions_output.root")
@@ -103,7 +107,20 @@ See [2_model_export/README.md](2_model_export/README.md) for details.
 
 **Output:** `distortions_output.root` (6 × TH3F: 42×28×42)
 
-**Usage:**
+**Usage (Option 1 - Automated wrapper):**
+```bash
+cd 3_inference
+root -l run_inference.C
+```
+
+The `run_inference.C` wrapper script automatically:
+- Checks for required files (ONNX model and input data)
+- Sets up ONNX Runtime include/library paths
+- Compiles `TPCInference.C` with optimizations
+- Runs inference with default file paths
+- Displays helpful error messages if setup is incorrect
+
+**Usage (Option 2 - Manual):**
 ```bash
 cd 3_inference
 root -l
@@ -118,7 +135,7 @@ See [3_inference/README.md](3_inference/README.md) for details.
 ## Directory Structure
 
 ```
-onnx/
+DC_ML_Processing/
 ├── 1_dc_preprocessing/          # Step 1: Raw DC → TPC volumes
 │   ├── T_DigitalCurrent.C       # Core conversion code
 │   ├── T_DigitalCurrent.h
@@ -137,8 +154,8 @@ onnx/
 │   └── README.md
 │
 ├── 3_inference/                 # Step 3: ONNX inference
-│   ├── TPCInference.C           # ROOT-compatible inference
-│   ├── tpc_inference_example.cpp # Standalone C++ version
+│   ├── TPCInference.C           # Core inference implementation
+│   ├── run_inference.C          # Automated wrapper script
 │   └── README.md
 │
 ├── onnxruntime/                 # ONNX Runtime library
@@ -156,19 +173,19 @@ onnx/
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Raw Digital Current Files (24 EBDC modules)                 │
+│  Raw Digital Current Files (48 EBDC modules)                │
 │  Format: ROOT TTree with dc_fee, dc_gtm_bco, dc_current[8]  │
 └────────────────────┬────────────────────────────────────────┘
                      ↓
 ┌─────────────────────────────────────────────────────────────┐
-│  Step 1: DC Preprocessing (C++ ROOT)                         │
+│  Step 1: DC Preprocessing (C++ ROOT)                        │
 │  Scripts: run_digital_current.C, fee_plot_tpcvolume.C       │
 └────────────────────┬────────────────────────────────────────┘
                      ↓
 ┌─────────────────────────────────────────────────────────────┐
-│  3D TPC Volume: dc_r_phi_tpcvolume.root                      │
+│  3D TPC Volume: dc_r_phi_tpcvolume.root                     │
 │  Format: TH3D (205 × 66 × 160) - φ × r × z                  │
-│  Data: ADC-weighted charge density                           │
+│  Data: ADC-weighted charge density                          │
 └────────────────────┬────────────────────────────────────────┘
                      ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -181,9 +198,9 @@ onnx/
 └────────────────────┬────────────────────────────────────────┘
                      ↓
 ┌─────────────────────────────────────────────────────────────┐
-│  Distortion Maps: distortions_output.root                    │
+│  Distortion Maps: distortions_output.root                   │
 │  Format: 6 × TH3F (42 × 28 × 42) - φ × r × z                │
-│  Channels:                                                   │
+│  Channels:                                                  │
 │    • h_vals_nz, h_vals_pz  (φ-direction, ±z)                │
 │    • r_vals_nz, r_vals_pz  (radial, ±z)                     │
 │    • z_vals_nz, z_vals_pz  (z-direction, ±z)                │

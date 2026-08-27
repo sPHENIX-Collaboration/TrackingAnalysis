@@ -80,9 +80,9 @@ fee_plot_tpcvolume()
 ```
 
 **Output:** `dc_r_phi_tpcvolume.root` containing a TH3D histogram with:
-- **X-axis:** z coordinate (160 bins, ±1080 mm)
+- **X-axis:** φ coordinate (205 bins, 0-2π)
 - **Y-axis:** r coordinate (66 bins, 217-759 mm)
-- **Z-axis:** φ coordinate (205 bins, 0-2π)
+- **Z-axis:** z coordinate (160 bins, ±1080 mm)
 
 ## TPC Geometry
 

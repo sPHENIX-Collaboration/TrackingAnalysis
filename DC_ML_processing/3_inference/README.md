@@ -112,10 +112,10 @@ The ROOT file should contain a 3D histogram named `dc_values`:
 ```cpp
 // Expected histogram structure
 TH3F* dc_values
-  - X-axis: z [160 bins, -1080 to 1080 mm]
+  - X-axis: φ [205 bins, 0 to 2π rad]
   - Y-axis: r [66 bins, 217 to 759 mm]
-  - Z-axis: φ [205 bins, 0 to 2π rad]
-  - Dimension: (160, 66, 205) = 2,164,800 elements
+  - Z-axis: z [160 bins, -1080 to 1080 mm]
+  - Dimension: (205, 66, 160) = 2,164,800 elements
 ```
 
 ### 2. C++ Vector (for programmatic use)

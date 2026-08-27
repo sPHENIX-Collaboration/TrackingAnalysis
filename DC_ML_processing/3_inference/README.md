@@ -57,15 +57,15 @@ root -l -b -q run_inference.C
 ```
 
 **What the wrapper does automatically:**
-- ✅ Checks that required files exist (ONNX model and input data)
-- ✅ Sets up ONNX Runtime include and library paths
-- ✅ Compiles `TPCInference.C` with optimizations (~30 seconds)
-- ✅ Runs inference with default file paths:
+-  Checks that required files exist (ONNX model and input data)
+-  Sets up ONNX Runtime include and library paths
+-  Compiles `TPCInference.C` with optimizations (~30 seconds)
+-  Runs inference with default file paths:
   - Model: `../2_model_export/unet3d_tpc.onnx`
   - Input: `dc_r_phi_tpcvolume.root`
   - Output: `distortions_output.root`
-- ✅ Displays progress messages and helpful error messages
-- ✅ Shows visualization instructions when complete
+-  Displays progress messages and helpful error messages
+-  Shows visualization instructions when complete
 
 This is the recommended approach for most users as it handles all setup automatically.
 

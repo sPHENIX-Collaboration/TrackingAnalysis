@@ -1,4 +1,4 @@
-# sPHENIX TPC Distortion Prediction - ONNX Inference Pipeline
+# sPHENIX TPC Distortions from Digital Current - ONNX Inference Pipeline
 
 Complete C++/ROOT workflow for predicting TPC distortion fields from digital current measurements using machine learning.
 
@@ -236,5 +236,5 @@ onnx/
    ```bash
    pip install torch onnx numpy
    ```
-   
+
 **Last Updated:** 2026-08-26

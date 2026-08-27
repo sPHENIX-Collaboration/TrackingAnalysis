@@ -156,23 +156,3 @@ These parameters are essential for correct denormalization:
 | r_vals_pz | 1.097 | 0.470 | 0.5-1.5 cm |
 | z_vals_nz | -0.0398 | 0.0336 | ±0.05 cm |
 | z_vals_pz | 0.0223 | 0.0397 | ±0.05 cm |
-
-## Using Inference Results
-
-After generating distortion maps, you can use them in analysis:
-
-```cpp
-// Load results
-TFile* f = TFile::Open("distortions_output.root");
-TH3F* r_dist_nz = (TH3F*)f->Get("r_vals_nz");
-
-// Get distortion at specific point
-int z_bin = r_dist_nz->GetXaxis()->FindBin(z_coord);
-int r_bin = r_dist_nz->GetYaxis()->FindBin(r_coord);
-int phi_bin = r_dist_nz->GetZaxis()->FindBin(phi_coord);
-
-float distortion = r_dist_nz->GetBinContent(z_bin, r_bin, phi_bin);
-
-// Apply correction to measured track position
-float corrected_r = measured_r - distortion;
-```

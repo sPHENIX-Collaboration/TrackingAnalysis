@@ -7,17 +7,17 @@ export LOGNAME=${USER}
 export HOME=/sphenix/u/${LOGNAME}
 
 # uncomment for local development
-export SPHENIX=${HOME}/sPHENIX
-export MYINSTALL=$SPHENIX/install
-export LD_LIBRARY_PATH=$MYINSTALL/lib:$LD_LIBRARY_PATH
-export ROOT_INCLUDE_PATH=$MYINSTALL/include:$ROOT_INCLUDE_PATH
-export PATH="$HOME/.local/bin:$PATH"
+#export SPHENIX=${HOME}/sPHENIX
+#export MYINSTALL=$SPHENIX/install
+#export LD_LIBRARY_PATH=$MYINSTALL/lib:$LD_LIBRARY_PATH
+#export ROOT_INCLUDE_PATH=$MYINSTALL/include:$ROOT_INCLUDE_PATH
+#export PATH="$HOME/.local/bin:$PATH"
 
-source /opt/sphenix/core/bin/setup_local.sh $MYINSTALL
+#source /opt/sphenix/core/bin/setup_local.sh $MYINSTALL
 
 useScratch=false
 
-if ${useScratch}=true; then
+if [[ "${useScratch}" == true ]]; then
   this_script=$BASH_SOURCE
   this_script=`readlink -f $this_script`
   this_dir=`dirname $this_script`
@@ -36,10 +36,10 @@ fi
 
 nEvents=$1
 inDst=$2
-inDir=$3
+outDir=$3
 nSkip=$4
 
-if ${useScratch}=true; then
+if [[ "${useScratch}" == true ]]; then
   if [[ "${inDst}" == *.root ]]; then
     getinputfiles.pl $inDst
   elif [[ "${inDst}" == *.list ]]; then
@@ -51,5 +51,5 @@ fi
 #printenv
 
 echo running: runHFreco.sh $*
-root.exe -q -b Fun4All_HF.C\(${nEvents},\"${inDst}\",\"${inDir}\",${nSkip}\)
+root.exe -q -b Fun4All_HF.C\(${nEvents},\"${inDst}\",\"${outDir}\",${nSkip}\)
 echo Script done

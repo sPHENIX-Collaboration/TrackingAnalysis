@@ -59,8 +59,8 @@ namespace HeavyFlavorReco
   std::string ee_output_reco_file;
   std::string ee_output_dir;
 
-  bool save_kfpntuple = false;
-  bool use_pid = true;
+  bool save_kfpntuple = true;
+  bool use_pid = false;
   bool save_tracks_to_DST = true;
   bool dont_use_global_vertex = true;
   bool require_track_and_vertex_match = true;
@@ -74,20 +74,20 @@ namespace HeavyFlavorReco
   float pid_frac = 0.4;
   float cemc_proj_radius = 102.9; //Virgile recommendation according to DetailedCalorimeterGeometry
   bool constrain_lambda_mass = true;
-  bool extraolate_tracks_to_secondary_vertex = false; // Set to false to ensure the pT map is accurate for asymmetry study
+  bool extrapolate_tracks_to_secondary_vertex = false; // Set to false to ensure the pT map is accurate for asymmetry study
 
   //Used
-  float lf_cuts_setMinDIRA{0.99};
+  float lf_cuts_setMinDIRA{0.85};
   float lf_cuts_setDecayLengthRange_min{0.05};
-  float lf_cuts_setMinimumTrackIP_XY{0.05};
-  float lf_cuts_setMinMVTXhits{1};
-  float lf_cuts_setMinINTThits{1};
+  float lf_cuts_setMinimumTrackPV_DCA_XY{0.05};
+  float lf_cuts_setMinMVTXhits{0};
+  float lf_cuts_setMinINTThits{0};
   float lf_cuts_setMinTPChits{20};
-  float lf_cuts_setMaximumVertexchi2nDOF{20};
-  float lf_cuts_setMaximumDaughterDCA{0.5};
+  float lf_cuts_setMaximumVertexchi2nDOF{INT_MAX};
+  float lf_cuts_setMaximumDaughterDCA{0.1};
 
   //Unused
-  float lf_cuts_setMotherIPchi2{FLT_MAX};
+  float lf_cuts_setMotherPV_DCA_StdDev{FLT_MAX};
   float lf_cuts_setFlightDistancechi2{-1.};
   float lf_cuts_setMinDIRA_XY{-1.1};
   float lf_cuts_setDecayLengthRange_max{FLT_MAX};
@@ -101,9 +101,9 @@ namespace HeavyFlavorReco
   float lf_cuts_setMinDecayLengthSignificance{-1e5};
   float lf_cuts_setMinDecayLengthSignificance_XY{-1e5};
   float lf_cuts_setMinimumTrackPT{0.0};
-  float lf_cuts_setMinimumTrackIPchi2{-1.};
-  float lf_cuts_setMinimumTrackIPchi2_XY{-1.};
-  float lf_cuts_setMinimumTrackIP{-1.};
+  float lf_cuts_setMinimumTrackPV_DCA_StdDev{-1.};
+  float lf_cuts_setMinimumTrackPV_DCA_StdDev_XY{-1.};
+  float lf_cuts_setMinimumTrackPV_DCA{-1.};
   float lf_cuts_setMaximumTrackchi2nDOF{300.};
   float lf_cuts_setMaximumDaughterDCA_XY{1};
   float lf_cuts_setMotherPT{0};
@@ -145,11 +145,11 @@ void reconstruct_pipi_mass()
   Fun4AllServer *se = Fun4AllServer::instance();
 
   KFParticle_sPHENIX *kfparticle = new KFParticle_sPHENIX(pipi_reconstruction_name);
-  kfparticle->Verbosity(10);
+  kfparticle->Verbosity(VERBOSITY_HF);
 
   kfparticle->setDecayDescriptor(pipi_decay_descriptor);
 
-  kfparticle->extraolateTracksToSV(extraolate_tracks_to_secondary_vertex);
+  kfparticle->extrapolateTracksToSV(extrapolate_tracks_to_secondary_vertex);
 
   kfparticle->saveOutput(save_kfpntuple);
 
@@ -171,17 +171,17 @@ void reconstruct_pipi_mass()
 
   //PV to SV cuts
   kfparticle->constrainToPrimaryVertex();
-  kfparticle->setMotherPV_DCA_StdDev(100);
-  kfparticle->setFlightDistancechi2(-1.);
-  kfparticle->setMinDIRA(0.88);
-  kfparticle->setMinDIRA_XY(-1.1);
-  kfparticle->setDecayLengthRange(0.1, FLT_MAX);
-  kfparticle->setDecayLengthRange_XY(-10000, FLT_MAX);
-  kfparticle->setDecayTimeRange_XY(-10000, FLT_MAX);
-  kfparticle->setDecayTimeRange(-10000, FLT_MAX);
-  kfparticle->setMinDecayTimeSignificance(-1e5);
-  kfparticle->setMinDecayLengthSignificance(-1e5);
-  kfparticle->setMinDecayLengthSignificance_XY(-1e5);
+  kfparticle->setMotherPV_DCA_StdDev(lf_cuts_setMotherPV_DCA_StdDev);
+  kfparticle->setFlightDistancechi2(lf_cuts_setFlightDistancechi2);
+  kfparticle->setMinDIRA(lf_cuts_setMinDIRA);
+  kfparticle->setMinDIRA_XY(lf_cuts_setMinDIRA_XY);
+  kfparticle->setDecayLengthRange(lf_cuts_setDecayLengthRange_min, lf_cuts_setDecayLengthRange_max);
+  kfparticle->setDecayLengthRange_XY(lf_cuts_setDecayLengthRange_XY_min, lf_cuts_setDecayLengthRange_XY_max);
+  kfparticle->setDecayTimeRange_XY(lf_cuts_setDecayTimeRange_XY_min, lf_cuts_setDecayTimeRange_XY_max);
+  kfparticle->setDecayTimeRange(lf_cuts_setDecayTimeRange_min, lf_cuts_setDecayTimeRange_max);
+  kfparticle->setMinDecayTimeSignificance(lf_cuts_setMinDecayTimeSignificance);
+  kfparticle->setMinDecayLengthSignificance(lf_cuts_setMinDecayLengthSignificance);
+  kfparticle->setMinDecayLengthSignificance_XY(lf_cuts_setMinDecayLengthSignificance_XY);
 
   //Track parameters
   kfparticle->setMinimumTrackPT(lf_cuts_setMinimumTrackPT);
@@ -224,7 +224,7 @@ void reconstruct_KK_mass()
 
   kfparticle->setDecayDescriptor(KK_decay_descriptor);
 
-  kfparticle->extraolateTracksToSV(extraolate_tracks_to_secondary_vertex);
+  kfparticle->extrapolateTracksToSV(extrapolate_tracks_to_secondary_vertex);
 
   kfparticle->saveOutput(save_kfpntuple);
 
@@ -274,7 +274,7 @@ void reconstruct_KK_mass()
 
   QAKFParticle *kfpqa = new QAKFParticle("QAKFParticle_phi","phi",0.98,1.1);
   kfpqa->setKFParticleNodeName(KK_reconstruction_name);
-  se->registerSubsystem(kfpqa);
+  //se->registerSubsystem(kfpqa);
 }
 
 void reconstruct_ppi_mass()
@@ -285,7 +285,7 @@ void reconstruct_ppi_mass()
 
   kfparticle->setDecayDescriptor(ppi_decay_descriptor);
 
-  kfparticle->extraolateTracksToSV(extraolate_tracks_to_secondary_vertex);
+  kfparticle->extrapolateTracksToSV(extrapolate_tracks_to_secondary_vertex);
 
   kfparticle->saveOutput(save_kfpntuple);
 
@@ -356,11 +356,11 @@ void reconstruct_Kpi_mass()
   Fun4AllServer *se = Fun4AllServer::instance();
 
   KFParticle_sPHENIX *kfparticle = new KFParticle_sPHENIX(Kpi_reconstruction_name);
-  kfparticle->Verbosity(0);
+  kfparticle->Verbosity(VERBOSITY_HF);
 
   kfparticle->setDecayDescriptor(Kpi_decay_descriptor);
 
-  kfparticle->extraolateTracksToSV(extraolate_tracks_to_secondary_vertex);
+  kfparticle->extrapolateTracksToSV(extrapolate_tracks_to_secondary_vertex);
 
   kfparticle->saveOutput(save_kfpntuple);
 
@@ -435,7 +435,7 @@ void reconstruct_ee_mass()
 
   kfparticle->setDecayDescriptor(ee_decay_descriptor);
 
-  kfparticle->extraolateTracksToSV(extraolate_tracks_to_secondary_vertex);
+  kfparticle->extrapolateTracksToSV(extrapolate_tracks_to_secondary_vertex);
 
   kfparticle->saveOutput(save_kfpntuple);
 
@@ -517,7 +517,7 @@ void reconstruct_ee_mass()
   QAKFParticle *kfpqa = new QAKFParticle("QAKFParticle_gamma","gamma",0.0,0.1);
   kfpqa->setKFParticleNodeName(ee_reconstruction_name);
   kfpqa->Verbosity(VERBOSITY_HF);
-  se->registerSubsystem(kfpqa);
+  //se->registerSubsystem(kfpqa);
 }
 
 void end_kfparticle(std::string full_file_name, std::string final_path)

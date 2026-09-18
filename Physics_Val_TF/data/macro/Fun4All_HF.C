@@ -189,7 +189,7 @@ void Fun4All_HF(const int nEvents = 500,                                        
     rc->set_uint64Flag("TIMESTAMP", runnumber);
 
     Enable::CDB = true;
-    rc->set_StringFlag("CDB_GLOBALTAG", "newcdbtag");
+    rc->set_StringFlag("CDB_GLOBALTAG", "newcdbtag");// 2026p002_v001
     rc->set_uint64Flag("TIMESTAMP", runnumber);
 
     std::stringstream nice_runnumber;
@@ -209,26 +209,26 @@ void Fun4All_HF(const int nEvents = 500,                                        
     std::stringstream nice_skip;
     nice_skip << std::setw(5) << std::setfill('0') << to_string(nSkip);
 
-    if (!DoSeeding && (get_dEdx_info || get_detector_info))
-    {
-        //unsigned begin = inputDST.find("ana");
-        //unsigned end = inputDST.find("-");
-        std::string clus_anacdbver = "ana532_2025p009_v001"; //inputDST.substr(begin, end - begin);
-        std::string clus_file = "";
-        if (runspecies == "run3pp" || runspecies == "run3auau")
-        {
-            clus_file = "/sphenix/lustre01/sphnxpro/production/" + runspecies + "/physics/" + clus_anacdbver + "/DST_TRKR_CLUSTER/run_" + nice_rounded_down.str() + "_" + nice_rounded_up.str() + "/DST_TRKR_CLUSTER_" + runspecies + "_" + clus_anacdbver + "-" + nice_runnumber.str() + "-" + nice_segment.str() + ".root";
-        }
-        if (runspecies == "run2pp")
-        {
-            clus_file = "/sphenix/lustre01/sphnxpro/production/" + runspecies + "/physics/" + clus_anacdbver + "/DST_TRKR_CLUSTER/run_" + nice_rounded_down.str() + "_" + nice_rounded_up.str() + "/dst/DST_TRKR_CLUSTER_" + runspecies + "_" + clus_anacdbver + "-" + nice_runnumber.str() + "-" + nice_segment.str() + ".root";
-        }
-        std::cout << "Input cluster DST: " << clus_file << std::endl;
-
-        auto hitsinclus = new Fun4AllDstInputManager("ClusterInputManager");
-        hitsinclus->fileopen(clus_file);
-        se->registerInputManager(hitsinclus);
-    }
+//    if (!DoSeeding && (get_dEdx_info || get_detector_info))
+//    {
+//        //unsigned begin = inputDST.find("ana");
+//        //unsigned end = inputDST.find("-");
+//        std::string clus_anacdbver = "ana532_2025p009_v001"; //inputDST.substr(begin, end - begin);
+//        std::string clus_file = "";
+//        if (runspecies == "run3pp" || runspecies == "run3auau")
+//        {
+//            clus_file = "/sphenix/lustre01/sphnxpro/production/" + runspecies + "/physics/" + clus_anacdbver + "/DST_TRKR_CLUSTER/run_" + nice_rounded_down.str() + "_" + nice_rounded_up.str() + "/DST_TRKR_CLUSTER_" + runspecies + "_" + clus_anacdbver + "-" + nice_runnumber.str() + "-" + nice_segment.str() + ".root";
+//        }
+//        if (runspecies == "run2pp")
+//        {
+//            clus_file = "/sphenix/lustre01/sphnxpro/production/" + runspecies + "/physics/" + clus_anacdbver + "/DST_TRKR_CLUSTER/run_" + nice_rounded_down.str() + "_" + nice_rounded_up.str() + "/dst/DST_TRKR_CLUSTER_" + runspecies + "_" + clus_anacdbver + "-" + nice_runnumber.str() + "-" + nice_segment.str() + ".root";
+//        }
+//        std::cout << "Input cluster DST: " << clus_file << std::endl;
+//
+//        auto hitsinclus = new Fun4AllDstInputManager("ClusterInputManager");
+//        hitsinclus->fileopen(clus_file);
+//        se->registerInputManager(hitsinclus);
+//    }
 
     if (get_calo_info)
     {

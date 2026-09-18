@@ -70,8 +70,8 @@ do
     do
       startEvent=$(($i*$nEvents))
 
-      echo "${nEvents} ${DST} ${directory} ${startEvent}" >> ${outFile}
-      #echo "${nEvents} ${DST} ${startEvent}" >> ${outFile}
+      #echo "${nEvents} ${DST} ${directory} ${startEvent}" >> ${outFile}
+      echo "${nEvents} ${DST} ${startEvent}" >> ${outFile}
 
     done
  

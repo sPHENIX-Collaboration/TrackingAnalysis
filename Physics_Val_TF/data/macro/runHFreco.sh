@@ -12,7 +12,7 @@ export HOME=/sphenix/u/${LOGNAME}
 #export LD_LIBRARY_PATH=$MYINSTALL/lib:$LD_LIBRARY_PATH
 #export ROOT_INCLUDE_PATH=$MYINSTALL/include:$ROOT_INCLUDE_PATH
 #export PATH="$HOME/.local/bin:$PATH"
-#
+
 #source /opt/sphenix/core/bin/setup_local.sh $MYINSTALL
 
 # print the environment - needed for debugging
@@ -20,7 +20,7 @@ export HOME=/sphenix/u/${LOGNAME}
 
 useScratch=false
 
-if ${useScratch}=true; then
+if [[ "${useScratch}" == true ]]; then
   this_script=$BASH_SOURCE
   this_script=`readlink -f $this_script`
   this_dir=`dirname $this_script`
@@ -42,7 +42,7 @@ inDst=$2
 outDir=$3
 nSkip=$4
 
-if ${useScratch}=true; then
+if [[ "${useScratch}" == true ]]; then
   if [[ "${inDst}" == *.root ]]; then
     getinputfiles.pl $inDst
   elif [[ "${inDst}" == *.list ]]; then

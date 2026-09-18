@@ -101,9 +101,9 @@ namespace HeavyFlavorReco
   float lf_cuts_setMinDecayLengthSignificance{-1e5};
   float lf_cuts_setMinDecayLengthSignificance_XY{-1e5};
   float lf_cuts_setMinimumTrackPT{0.0};
+  float lf_cuts_setMinimumTrackPV_DCA{-1.};
   float lf_cuts_setMinimumTrackPV_DCA_StdDev{-1.};
   float lf_cuts_setMinimumTrackPV_DCA_StdDev_XY{-1.};
-  float lf_cuts_setMinimumTrackPV_DCA{-1.};
   float lf_cuts_setMaximumTrackchi2nDOF{300.};
   float lf_cuts_setMaximumDaughterDCA_XY{1};
   float lf_cuts_setMotherPT{0};

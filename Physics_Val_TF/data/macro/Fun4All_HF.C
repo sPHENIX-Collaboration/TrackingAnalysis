@@ -37,7 +37,6 @@
 #include <trackingqa/VertexQA.h>
 #include <trackreco/PHActsTrackProjection.h>
 
-#include <caloreco/CaloGeomMapping.h>
 #include <caloreco/RawClusterBuilderTemplate.h>
 
 #include <kfparticle_sphenix/KFParticle_sPHENIX.h>
@@ -469,11 +468,6 @@ void Fun4All_HF(const int nEvents = 500,                                        
             projection->setLayerRadius(SvtxTrack::CEMC, cemc_proj_radius);
         }
         se->registerSubsystem(projection);
-
-        CaloGeomMapping *cgm = new CaloGeomMapping();
-        cgm->set_detector_name("CEMC");
-        cgm->set_UseDetailedGeometry(true);
-        se->registerSubsystem(cgm);
 
         //////////////////
         // Clusters

@@ -24,27 +24,84 @@ SiliconQA::SiliconQA()
 
 void SiliconQA::GetQAhtml()
 {
-  for (const auto &entry : std::filesystem::directory_iterator(_inputbasedir))
-  {
-    std::string inputfile_hit = entry.path().string();
+  std::cout << "Searching QA directory: " << _inputbasedir << std::endl;
 
-    if (inputfile_hit.find("HIST_DST_TRKR_HIT") == std::string::npos)
+   const std::vector<std::string> run_periods = {
+    "run2pp",
+    "run3auau",
+    "run3oo",
+    "run3pp"
+};
+
+for (const auto &run_period : run_periods)
+{
+    const std::filesystem::path physics_path =
+        std::filesystem::path(_inputbasedir) /
+        run_period /
+        "physics";
+
+    if (!std::filesystem::exists(physics_path))
     {
-      continue;
+        std::cerr << "Physics directory does not exist: "
+                  << physics_path << std::endl;
+        continue;
     }
+
+    if (!std::filesystem::is_directory(physics_path))
+    {
+        std::cerr << "Not a directory: "
+                  << physics_path << std::endl;
+        continue;
+    }
+
+    for (const auto &entry :
+         std::filesystem::recursive_directory_iterator(physics_path))
+    {
+        if (!entry.is_regular_file())
+        {
+            continue;
+        }
+
+        const std::filesystem::path file_path = entry.path();
+
+        if (file_path.extension() != ".root")
+        {
+            continue;
+        }
+
+        const std::string inputfile = file_path.string();
+
+        // Require the file to be somewhere below a DST_TRKR_CLUSTER directory.
+        bool inside_cluster_directory = false;
+
+        for (const auto &component : file_path)
+        {
+            if (component == "DST_TRKR_CLUSTER")
+            {
+                inside_cluster_directory = true;
+                break;
+            }
+        }
+
+        if (!inside_cluster_directory)
+        {
+            continue;
+        }
+
+        // Require the expected tracker-cluster filename.
+        if (file_path.filename().string().find("HIST_DST_TRKR_CLUSTER") == std::string::npos)
+        {
+            continue;
+        }
+
+	if (!_productionTag.empty() && inputfile.find(_productionTag) == std::string::npos)
+	{
+    	  continue;
+	}	
 
     // get run number from qa file
-    std::string s_runnumber = inputfile_hit.substr(inputfile_hit.find("-000") + 4, 5);
+    std::string s_runnumber = inputfile.substr(inputfile.find("-000") + 4, 5);
     int run = ::atoi(s_runnumber.c_str());
-
-    // If goldenruns: limit run selection to 51730-52206, 52469-53880
-    if (b_goldenruns)
-    {
-      if (run < 51730 || (run > 52206 && run < 52469) || run > 53880)
-      {
-        continue;
-      }
-    }
 
     // skip if already processed run
     if (processed_runs.find(run) != processed_runs.end())
@@ -55,36 +112,53 @@ void SiliconQA::GetQAhtml()
     // add run to processed runs
     processed_runs.insert(run);
 
-    auto pos = inputfile_hit.find("HIST_DST_TRKR_HIT");
-    std::string inputfile_clust = inputfile_hit;
-    inputfile_clust.replace(pos, std::string("HIST_DST_TRKR_HIT").size(), "HIST_DST_TRKR_CLUSTER");
 
-    if (!std::filesystem::exists(inputfile_clust))
-    {
-      continue;
+
+    map_inputfile[run] = inputfile;
     }
-
-    map_inputfile_hit[run] = inputfile_hit;
-    map_inputfile_clust[run] = inputfile_clust;
   }
 }
 
 void SiliconQA::doQA()
 {
   std::vector<int> runlist(processed_runs.begin(), processed_runs.end());
+  if(runlist.size() == 0)
+  {
+	  std::cout << "Run list is empty!";
+
+  }
+
+
   for (const auto &run : runlist)
   {
     runnumber = run;
 
-    TFile *f_hit = new TFile(map_inputfile_hit[runnumber].c_str(), "READ");
-    TFile *f_clust = new TFile(map_inputfile_clust[runnumber].c_str(), "READ");
+    std::unique_ptr<TFile> f(TFile::Open(map_inputfile[runnumber].c_str(), "READ"));
+    if (!f)
+{
+    std::cerr << "Run " << runnumber
+              << ": TFile::Open returned nullptr for "
+              << map_inputfile[runnumber]
+              << std::endl;
+    continue;
+}
+
+if (f->IsZombie())
+{
+    std::cerr << "Run " << runnumber
+              << ": ROOT file is unreadable or corrupted: "
+              << map_inputfile[runnumber]
+              << std::endl;
+    continue;
+}
+
 
     // =========================  Do INTT QA  =========================
     // inttQA() returns a tuple with elements:
     // 0: BCO diff
     // 1: Good channel+chip fraction
     // 2: Good FEE fraction (from RMS of hits in channels/chips)
-    auto inttqaresult = inttQA(f_hit);
+    auto inttqaresult = inttQA(f.get());
     if (inttqaresult)
     {
       map_inttQA[runnumber] = *inttqaresult;
@@ -93,6 +167,7 @@ void SiliconQA::doQA()
     {
       continue;
     }
+
     // ================================================================
 
     // =========================  Do MVTX QA  =========================
@@ -104,7 +179,7 @@ void SiliconQA::doQA()
     // 4: modulation amplitude of cosine fit to cluster phi
     // 5: phase offset of cosine fit to cluster phi
     // 6: chi2/NDF of cosine fit to cluster phi
-    auto mvtxqaresult = mvtxQA(f_hit, f_clust);
+    auto mvtxqaresult = mvtxQA(f.get());
     if (mvtxqaresult)
     {
       map_mvtxQA[runnumber] = *mvtxqaresult;
@@ -149,11 +224,8 @@ void SiliconQA::doQA()
     std::cout << "Run: " << run << "\n"
               << statementQA << std::endl;
 
-    f_hit->Close();
-    f_clust->Close();
-    delete f_hit;
-    delete f_clust;
   }
+
 }
 
 float SiliconQA::rawHitAcceptance(TH2 *h2)
@@ -239,11 +311,13 @@ std::optional<std::tuple<bool, float, float>> SiliconQA::inttQA(TFile* qafile)
   // get bco diff qa from cdb (must be 23 for INTT streaming mode)
   bool intt_bco_diff_qa = true;
 
+
   auto rc = recoConsts::instance();
   rc->set_IntFlag("RUNNUMBER", runnumber);
-  rc->set_StringFlag("CDB_GLOBALTAG", "ProdA_2024");
+  rc->set_StringFlag("CDB_GLOBALTAG", "newcdbtag");
   rc->set_uint64Flag("TIMESTAMP", runnumber);
 
+  /*
   std::string intt_bco_calib_dir = CDBInterface::instance()->getUrl("INTT_BCOMAP");
   if (intt_bco_calib_dir.empty())
   {
@@ -278,6 +352,8 @@ std::optional<std::tuple<bool, float, float>> SiliconQA::inttQA(TFile* qafile)
         intt_bco_diff_qa = false;
     }
   }
+  */
+
   // Get the 2D INTT chip/channel hit distributions
   // X: Chip on FEE, Y: Channel on FEE
   TGraphErrors *gRMS_Chip = new TGraphErrors();
@@ -285,28 +361,77 @@ std::optional<std::tuple<bool, float, float>> SiliconQA::inttQA(TFile* qafile)
   float good_channel_eff = 0.;
   TH2I *h_InttRawHitQA_intt[8][14];
   char hintt[128];
+
+
   for (int i = 0; i < 8; i++)
   {
     for (int j = 0; j < 14; j++)
     {
-      sprintf(hintt, "h_InttRawHitQA_intt%d_%d", i, j);
+      if (j < 10)
+	 {
+	     sprintf(hintt, "h_InttQa_hit_distribution_server%d_channel0%d",i,j);
+
+	 }
+      else
+      {
+      sprintf(hintt, "h_InttQa_hit_distribution_server%d_channel%d",i,j);
+      }
       auto hist = (TH2I *)qafile->Get(hintt);
       if (!hist)
       {
         continue;
       }
+
+
+
+
       h_InttRawHitQA_intt[i][j] = (TH2I *)hist->Clone();
+
+
+
       good_channel_eff += rawHitAcceptance(h_InttRawHitQA_intt[i][j]) / (8 * 14);
       // Get FEE chip/channel RMS
       double effectiveEntries = h_InttRawHitQA_intt[i][j]->GetEffectiveEntries();
       double RMSX = h_InttRawHitQA_intt[i][j]->GetRMS(1);
-      double errorRMSX = RMSX / sqrt(2 * effectiveEntries);
       double RMSY = h_InttRawHitQA_intt[i][j]->GetRMS(2);
-      double errorRMSY = RMSY / sqrt(2 * effectiveEntries);
-      gRMS_Chip->SetPoint(14 * i + j, 14 * i + j, RMSX);
-      gRMS_Chip->SetPointError(14 * i + j, 0, errorRMSX);
-      gRMS_Channel->SetPoint(14 * i + j, 14 * i + j, RMSY);
-      gRMS_Channel->SetPointError(14 * i + j, 0, errorRMSY);
+      if (effectiveEntries <= 0 ||
+          !std::isfinite(effectiveEntries) ||
+          !std::isfinite(RMSX) ||
+          !std::isfinite(RMSY))
+      {
+          std::cerr << "Run " << runnumber
+                    << ": skipping invalid histogram "
+                    << hintt
+                    << ", entries = " << effectiveEntries
+                    << ", RMSX = " << RMSX
+                    << ", RMSY = " << RMSY
+                    << std::endl;
+          continue;
+      }
+
+      const double errorRMSX =
+          RMSX / std::sqrt(2.0 * effectiveEntries);
+
+      const double errorRMSY =
+          RMSY / std::sqrt(2.0 * effectiveEntries);
+
+      if (!std::isfinite(errorRMSX) ||
+           !std::isfinite(errorRMSY))
+      {
+          std::cerr << "Run " << runnumber
+                    << ": invalid RMS error for "
+                    << hintt << std::endl;
+          continue;
+      }
+      const int detectorIndex = 14 * i + j;
+
+      const int chipPoint = gRMS_Chip->GetN();
+      gRMS_Chip->SetPoint(chipPoint, detectorIndex, RMSX);
+      gRMS_Chip->SetPointError(chipPoint, 0.0, errorRMSX);
+
+      const int channelPoint = gRMS_Channel->GetN();
+      gRMS_Channel->SetPoint(channelPoint, detectorIndex, RMSY);
+      gRMS_Channel->SetPointError(channelPoint, 0.0, errorRMSY);
     }
   }
   // if the RMS graphs are empty that means that all raw hit histograms do not exist
@@ -354,10 +479,14 @@ std::optional<std::tuple<bool, float, float>> SiliconQA::inttQA(TFile* qafile)
     // do the robust LTS (90%) regression fit
     TF1 *ffit_Chip = new TF1("ffit_Chip", "pol0", 0, 112);
     TF1 *ffit_Channel = new TF1("ffit_Channel", "pol0", 0, 112);
-    gRMS_Chip_copy->Fit(ffit_Chip, "RSCQ rob=0.90");
-    gRMS_Channel_copy->Fit(ffit_Channel, "RSCQ rob=0.90");
+    //gRMS_Chip_copy->Fit(ffit_Chip, "RSCQ rob=0.90");
+    //gRMS_Channel_copy->Fit(ffit_Channel, "RSCQ rob=0.90");
+    gRMS_Chip_copy->Fit(ffit_Chip, "RQ0");
+    gRMS_Channel_copy->Fit(ffit_Channel, "RQ0");
     float ffit_chip_par = ffit_Chip->GetParameter(0);
     float ffit_channel_par = ffit_Channel->GetParameter(0);
+
+
 
     // Now we get the standard deviation about the best fit
     float stddev_chip;
@@ -407,15 +536,15 @@ std::optional<std::tuple<bool, float, float>> SiliconQA::inttQA(TFile* qafile)
   return tup_intt;
 }
 
-std::optional<std::tuple<float, float, float, float, float, float, float>> SiliconQA::mvtxQA(TFile* qafile_hit, TFile *qafile_clust)
+std::optional<std::tuple<float, float, float, float, float, float, float>> SiliconQA::mvtxQA(TFile* qafile)
 {
   std::tuple<float, float, float, float, float, float, float> tup_mvtx;
 
-  TH2F *h_MvtxRawHitQA_nhits_stave_chip_layer0 = dynamic_cast<TH2F *>(qafile_hit->Get("h_MvtxRawHitQA_nhits_stave_chip_layer0"));
-  TH2F *h_MvtxRawHitQA_nhits_stave_chip_layer1 = dynamic_cast<TH2F *>(qafile_hit->Get("h_MvtxRawHitQA_nhits_stave_chip_layer1"));
-  TH2F *h_MvtxRawHitQA_nhits_stave_chip_layer2 = dynamic_cast<TH2F *>(qafile_hit->Get("h_MvtxRawHitQA_nhits_stave_chip_layer2"));
-  TH1F *h_MvtxClusterQA_clusterPhi_incl = dynamic_cast<TH1F *>(qafile_clust->Get("h_MvtxClusterQA_clusterPhi_incl"));
-  TH1F *h_MvtxClusterQA_chipOccupancy = dynamic_cast<TH1F *>(qafile_clust->Get("h_MvtxClusterQA_chipOccupancy"));
+  TH2F *h_MvtxRawHitQA_nhits_stave_chip_layer0 = dynamic_cast<TH2F *>(qafile->Get("h_MvtxRawHitQA_nhits_stave_chip_layer0"));
+  TH2F *h_MvtxRawHitQA_nhits_stave_chip_layer1 = dynamic_cast<TH2F *>(qafile->Get("h_MvtxRawHitQA_nhits_stave_chip_layer1"));
+  TH2F *h_MvtxRawHitQA_nhits_stave_chip_layer2 = dynamic_cast<TH2F *>(qafile->Get("h_MvtxRawHitQA_nhits_stave_chip_layer2"));
+  TH1F *h_MvtxClusterQA_clusterPhi_incl = dynamic_cast<TH1F *>(qafile->Get("h_MvtxClusterQA_clusterPhi_incl"));
+  TH1F *h_MvtxClusterQA_chipOccupancy = dynamic_cast<TH1F *>(qafile->Get("h_MvtxClusterQA_chipOccupancy"));
 
   if (!h_MvtxRawHitQA_nhits_stave_chip_layer0 || !h_MvtxRawHitQA_nhits_stave_chip_layer1 ||
       !h_MvtxRawHitQA_nhits_stave_chip_layer2 || !h_MvtxClusterQA_clusterPhi_incl ||

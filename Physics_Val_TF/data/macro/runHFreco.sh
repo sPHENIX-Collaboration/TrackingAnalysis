@@ -15,6 +15,9 @@ export HOME=/sphenix/u/${LOGNAME}
 
 #source /opt/sphenix/core/bin/setup_local.sh $MYINSTALL
 
+# print the environment - needed for debugging
+#printenv
+
 useScratch=false
 
 if [[ "${useScratch}" == true ]]; then
@@ -46,9 +49,6 @@ if [[ "${useScratch}" == true ]]; then
     getinputfiles.pl --filelist $inDst
   fi
 fi
-
-# print the environment - needed for debugging
-#printenv
 
 echo running: runHFreco.sh $*
 root.exe -q -b Fun4All_HF.C\(${nEvents},\"${inDst}\",\"${outDir}\",${nSkip}\)

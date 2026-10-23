@@ -22,6 +22,17 @@
 #include <fun4all/Fun4AllServer.h>
 
 #include <phool/recoConsts.h>
+#include <phgarfield/PHGarfield.h>
+#include <tpcconditions/TpcConditionsReco.h>
+
+#include <tpctrackreco/TpcCrossingFinder.h>
+#include <tpctrackreco/TpcPolyClusterTrkrClusterConverter.h>
+#include <tpctrackreco/TpcPolyTrackSeedConverter.h>
+#include <tpctrackreco/Tpc_AssembledTrackReco.h>
+#include <tpctrackreco/Tpc_ModuleTrackReco.h>
+#include <tpctrackreco/Tpc_PolyClusterizer.h>
+#include <tpctrackreco/Tpc_PolyTrackReco.h>
+#include <tpctrackreco/Tpc_PolyTrackVertexer.h>
 
 #include <mvtxrawhitqa/MvtxRawHitQA.h>
 #include <inttrawhitqa/InttRawHitQA.h>
@@ -36,6 +47,7 @@
 #include <trackingqa/TpcSiliconQA.h>
 #include <trackingqa/VertexQA.h>
 #include <trackreco/PHActsTrackProjection.h>
+#include <trackreco/DSTClusterPruning.h>
 
 #include <caloreco/RawClusterBuilderTemplate.h>
 
@@ -51,6 +63,8 @@ R__LOAD_LIBRARY(libfun4all.so)
 R__LOAD_LIBRARY(libffamodules.so)
 R__LOAD_LIBRARY(libphool.so)
 R__LOAD_LIBRARY(libcdbobjects.so)
+R__LOAD_LIBRARY(libPHGarfield.so)
+R__LOAD_LIBRARY(libtpctrackreco.so)
 
 bool IsListFile = false;
 bool IsDstFile = false;
@@ -61,17 +75,11 @@ bool DoFitting = false;
 
 void CheckDstType(const std::string inputDST)
 {
-    if (inputDST.find("DST_STREAMING_EVENT") != std::string::npos)
+    if (inputDST.find("DST_STREAMING_EVENT") != std::string::npos
+     || inputDST.find("DST_COMBINED") != std::string::npos)
     {
         DoUnpacking = true;
         DoClustering = true;
-        DoSeeding = true;
-        DoFitting = true;
-    }
-    else if (inputDST.find("DST_TRKR_CLUSTER") != std::string::npos)
-    {
-        DoUnpacking = false;
-        DoClustering = false;
         DoSeeding = true;
         DoFitting = true;
     }
@@ -94,7 +102,7 @@ void CheckDstType(const std::string inputDST)
 
 std::string GetRunInfo(const std::string &filename)
 {
-    const std::vector<std::string> runspecies_patterns = {"run2pp", "run3pp", "run3auau"};
+    const std::vector<std::string> runspecies_patterns = {"run2pp", "run3pp", "run3auau", "run3oo"};
 
     boost::char_separator<char> sep("_");
     boost::tokenizer<boost::char_separator<char>> tok(filename, sep);
@@ -114,11 +122,12 @@ std::string GetRunInfo(const std::string &filename)
     return "";
 }
 
-void Fun4All_HF(const int nEvents = 500,                                                                                                                                                                                            //
-                const std::string inputDST = "/sphenix/lustre01/sphnxpro/production/run2pp/physics/ana506_2024p023_v001/DST_TRKR_TRACKS/run_00053800_00053900/dst/DST_TRKR_TRACKS_run2pp_ana506_2024p023_v001-00053877-00000.root", //
-                const std::string outDir = "./",                                                                                                                                                                                    //
-                const int nSkip = 0,                                                                                                                                                                                                //
-                const bool convertSeeds = false)                                                                                                                                                                                    //
+void Fun4All_HF(const int nEvents = 500,
+                //const std::string inputDST = "DST_COMBINED_run3pp_ana571_2026p002_v001-00079516-00000.root",
+                const std::string inputDST = "DST_TRKR_TRACKS_run3pp_ana573_2026p003_v001-00079516-00000.root",
+                const std::string outDir = "./",
+                const int nSkip = 0,
+                const bool convertSeeds = false)
 {
     auto se = Fun4AllServer::instance();
     se->Verbosity(1);
@@ -208,36 +217,15 @@ void Fun4All_HF(const int nEvents = 500,                                        
     std::stringstream nice_skip;
     nice_skip << std::setw(5) << std::setfill('0') << to_string(nSkip);
 
-//    if (!DoSeeding && (get_dEdx_info || get_detector_info))
-//    {
-//        //unsigned begin = inputDST.find("ana");
-//        //unsigned end = inputDST.find("-");
-//        std::string clus_anacdbver = "ana532_2025p009_v001"; //inputDST.substr(begin, end - begin);
-//        std::string clus_file = "";
-//        if (runspecies == "run3pp" || runspecies == "run3auau")
-//        {
-//            clus_file = "/sphenix/lustre01/sphnxpro/production/" + runspecies + "/physics/" + clus_anacdbver + "/DST_TRKR_CLUSTER/run_" + nice_rounded_down.str() + "_" + nice_rounded_up.str() + "/DST_TRKR_CLUSTER_" + runspecies + "_" + clus_anacdbver + "-" + nice_runnumber.str() + "-" + nice_segment.str() + ".root";
-//        }
-//        if (runspecies == "run2pp")
-//        {
-//            clus_file = "/sphenix/lustre01/sphnxpro/production/" + runspecies + "/physics/" + clus_anacdbver + "/DST_TRKR_CLUSTER/run_" + nice_rounded_down.str() + "_" + nice_rounded_up.str() + "/dst/DST_TRKR_CLUSTER_" + runspecies + "_" + clus_anacdbver + "-" + nice_runnumber.str() + "-" + nice_segment.str() + ".root";
-//        }
-//        std::cout << "Input cluster DST: " << clus_file << std::endl;
-//
-//        auto hitsinclus = new Fun4AllDstInputManager("ClusterInputManager");
-//        hitsinclus->fileopen(clus_file);
-//        se->registerInputManager(hitsinclus);
-//    }
-
     if (get_calo_info)
     {
-        int ratio_nCalo_over_nTrkr = 10; // number of events per calo DST divided by number of events per tracking DST
+        int ratio_nCalo_over_nTrkr = 100; // number of events per calo DST divided by number of events per tracking DST
         std::stringstream nice_segment_calo;
         nice_segment_calo << std::setw(5) << std::setfill('0') << to_string(segment / ratio_nCalo_over_nTrkr);
 
-        std::string calo_anacdbver = "ana509_2024p022_v001";
+        std::string calo_anacdbver = "pro001_pcdb001_v001";
         std::string calo_file = "";
-        calo_file = "/sphenix/lustre01/sphnxpro/production2/" + runspecies + "/physics/calofitting/" + calo_anacdbver + "/run_" + nice_rounded_down.str() + "_" + nice_rounded_up.str() + "/DST_CALOFITTING_" + runspecies + "_" + calo_anacdbver + "-" + nice_runnumber.str() + "-" + nice_segment_calo.str() + ".root";
+        calo_file = "/sphenix/lustre01/sphnxpro/production/" + runspecies + "/physics/" + calo_anacdbver + "/DST_CALOFITTING/run_" + nice_rounded_down.str() + "_" + nice_rounded_up.str() + "/DST_CALOFITTING_" + runspecies + "_" + calo_anacdbver + "-" + nice_runnumber.str() + "-" + nice_segment_calo.str() + ".root";
         std::cout << "Input calo DST: " << calo_file << std::endl;
 
         auto hitsincalo = new Fun4AllDstInputManager("CaloInputManager");
@@ -272,17 +260,22 @@ void Fun4All_HF(const int nEvents = 500,                                        
     std::cout << " run: " << runnumber << " samples: " << TRACKING::reco_tpc_maxtime_sample << " pre: " << TRACKING::reco_tpc_time_presample << " vdrift: " << G4TPC::tpc_drift_velocity_reco << std::endl;
 
     G4TPC::REJECT_LASER_EVENTS = true;
-    G4TPC::ENABLE_MODULE_EDGE_CORRECTIONS = true;
     // Flag for running the tpc hit unpacker with zero suppression on
     TRACKING::tpc_zero_supp = true;
 
+    G4TPC::sampa_tzero_bias = 0;
+
+    TRACKING::use_slim_tracks = true;
+
+    G4TPC::ENABLE_MODULE_EDGE_CORRECTIONS = false;
+
     // to turn on the default static corrections, enable the two lines below
-    G4TPC::ENABLE_STATIC_CORRECTIONS = true;
+    G4TPC::ENABLE_STATIC_CORRECTIONS = false;
     G4TPC::USE_PHI_AS_RAD_STATIC_CORRECTIONS = false;
 
     // to turn on the average corrections, enable the three lines below
     // note: these are designed to be used only if static corrections are also applied
-    G4TPC::ENABLE_AVERAGE_CORRECTIONS = true;
+    G4TPC::ENABLE_AVERAGE_CORRECTIONS = false;
     G4TPC::USE_PHI_AS_RAD_AVERAGE_CORRECTIONS = false;
     // to use a custom file instead of the database file:
     G4TPC::average_correction_filename = CDBInterface::instance()->getUrl("TPC_LAMINATION_FIT_CORRECTION");
@@ -304,7 +297,7 @@ void Fun4All_HF(const int nEvents = 500,                                        
             Intt_HitUnpacking(std::to_string(server));
         }
         std::ostringstream ebdcname;
-        if (runspecies == "run3pp" || runspecies == "run3auau")
+        if (runspecies == "run3pp" || runspecies == "run3auau" || runspecies == "run3oo")
         {
             for (int ebdc = 0; ebdc < 24; ebdc++)
             {
@@ -349,42 +342,69 @@ void Fun4All_HF(const int nEvents = 500,                                        
 
         Tpc_LaserEventIdentifying();
 
-        TPC_Clustering_run2pp();
-
         Micromegas_Clustering();
 
         Reject_Laser_Events();
 
         se->registerSubsystem(new MvtxClusterQA);
         se->registerSubsystem(new InttClusterQA);
-        se->registerSubsystem(new TpcClusterQA);
         se->registerSubsystem(new MicromegasClusterQA);
     }
 
     if (DoSeeding)
     {
-        Tracking_Reco_TrackSeed_run2pp();
+        Tracking_Reco_SiliconSeed_run2pp();
 
-        auto converter = new TrackSeedTrackMapConverter("SiliconSeedConverter");
-        // Default set to full SvtxTrackSeeds. Can be set to
-        // SiliconTrackSeedContainer or TpcTrackSeedContainer
+        auto *converter = new TrackSeedTrackMapConverter("SiliconSeedToSvtxTrackMap");
         converter->setTrackSeedName("SiliconTrackSeedContainer");
         converter->setTrackMapName("SiliconSvtxTrackMap");
-        converter->setFieldMap(G4MAGNET::magfield_tracking);
-        converter->Verbosity(0);
+        converter->setClusterMapName("TRKR_CLUSTER");
         se->registerSubsystem(converter);
 
-        auto finder = new PHSimpleVertexFinder("SiliconVertexFinder");
-        finder->Verbosity(0);
-        finder->setDcaCut(0.1);
-        finder->setTrackPtCut(0.1);
-        finder->setBeamLineCut(1);
-        finder->setTrackQualityCut(1000000000);
-        finder->setNmvtxRequired(3);
-        finder->setOutlierPairCut(0.1);
-        finder->setTrackMapName("SiliconSvtxTrackMap");
-        finder->setVertexMapName("SiliconSvtxVertexMap");
-        se->registerSubsystem(finder);
+        auto *finder_svx = new PHSimpleVertexFinder("SiliconVertexFinder");
+        finder_svx->Verbosity(0);
+        finder_svx->setDcaCut(0.1);
+        finder_svx->setTrackPtCut(0.2);
+        finder_svx->setBeamLineCut(1);
+        finder_svx->setTrackQualityCut(500);
+        finder_svx->setNmvtxRequired(3);
+        finder_svx->setOutlierPairCut(0.1);
+        finder_svx->setTrackMapName("SiliconSvtxTrackMap");
+        finder_svx->setVertexMapName("SiliconSvtxVertexMap");
+        se->registerSubsystem(finder_svx);
+
+        se->registerSubsystem(new TpcConditionsReco());
+        // Shared drift model for the crossing finder and the polyclusterizer;
+        // must be registered after TpcConditionsReco and before the polyseeding modules.
+        auto *garfield = new PHGarfield();
+        se->registerSubsystem(garfield);
+
+        se->registerSubsystem(new Tpc_ModuleTrackReco());     // makes TPC_MODULETRACKS
+        se->registerSubsystem(new Tpc_AssembledTrackReco());  // makes TPC_ASSEMBLEDTRACKS
+
+        auto *crossingFinder = new TpcCrossingFinder();
+        crossingFinder->Verbosity(0);
+        crossingFinder->setInputNodeName("TPC_ASSEMBLEDTRACKS");
+        crossingFinder->setOutputNodeName("TPC_CROSSING_DECISIONS");
+        crossingFinder->setVertexMapNodeName("SiliconSvtxVertexMap");  // optional, configurable
+        se->registerSubsystem(crossingFinder);
+
+        auto *cluster = new Tpc_PolyClusterizer();  // makes TPC_POLYCLUSTERS
+        se->registerSubsystem(cluster);
+
+        se->registerSubsystem(new Tpc_PolyTrackReco());      // makes TPC_POLYTRACKS
+        se->registerSubsystem(new Tpc_PolyTrackVertexer());  // makes TPC_POLYTRACKVERTICES
+
+        se->registerSubsystem(new TpcPolyTrackSeedConverter());           // converts TPC_POLYTRACKS to TpcTrackSeed
+        se->registerSubsystem(new TpcPolyClusterTrkrClusterConverter());  // converts TPC_POLYCLUSTERS to TRKR_CLUSTER
+
+        Tracking_Reco_TrackMatching_run2pp();
+
+        auto *clusterPruner = new DSTClusterPruning("DSTClusterPruning");
+        clusterPruner->pruneAllSeeds();
+        se->registerSubsystem(clusterPruner);
+
+        se->registerSubsystem(new TpcClusterQA);
 
         auto siliconqa = new SiliconSeedsQA;
         siliconqa->setTrackMapName("SiliconSvtxTrackMap");
@@ -422,31 +442,9 @@ void Fun4All_HF(const int nEvents = 500,                                        
 
     if (DoFitting)
     {
-        Tracking_Reco_TrackMatching_run2pp();
-
-        G4TRACKING::convert_seeds_to_svtxtracks = convertSeeds;
-        std::cout << "Converting to seeds : " << G4TRACKING::convert_seeds_to_svtxtracks << std::endl;
-        /*
-         * Either converts seeds to tracks with a straight line/helix fit
-         * or run the full Acts track kalman filter fit
-         */
-        if (G4TRACKING::convert_seeds_to_svtxtracks)
-        {
-            auto *converter = new TrackSeedTrackMapConverter;
-            // Default set to full SvtxTrackSeeds. Can be set to
-            // SiliconTrackSeedContainer or TpcTrackSeedContainer
-            converter->setTrackSeedName("SvtxTrackSeedContainer");
-            converter->setFieldMap(G4MAGNET::magfield_tracking);
-            converter->Verbosity(0);
-            se->registerSubsystem(converter);
-        }
-        else
-        {
-            Tracking_Reco_TrackFit_run2pp();
-        }
-
-        // vertexing and propagation to vertex
-        Tracking_Reco_Vertex_run2pp();
+        Tracking_Reco_SiTpcTrackMatching_run2pp("TRKR_CLUSTER_SEED");
+        Tracking_Reco_TrackFit_run2pp("", "TRKR_CLUSTER_SEED");
+        Tracking_Reco_Vertex_run2pp("TRKR_CLUSTER_SEED");
 
         se->registerSubsystem(new TpcSiliconQA);
         se->registerSubsystem(new TrackFittingQA);

@@ -1,0 +1,12 @@
+AUTOMAKE_OPTIONS = foreign
+EXTRA_DIST = README.md PR_NOTES.md pyproject.toml .clang-format .clang-tidy .gitignore diagnostics tests tools
+AM_CPPFLAGS = -I$(includedir) -isystem$(OFFLINE_MAIN)/include -isystem$(ROOTSYS)/include
+AM_LDFLAGS = -L$(ROOTSYS)/lib -L$(libdir) -L$(OFFLINE_MAIN)/lib -L$(OFFLINE_MAIN)/lib64
+pkginclude_HEADERS = TpcConditionsReference.h
+noinst_HEADERS = TpcPHGarfieldReference.h TpcRunAverageConditions.h TpcConditionsUtils.h
+lib_LTLIBRARIES = libtpccalibrationqa.la
+libtpccalibrationqa_la_SOURCES = TpcConditionsReference.cc TpcPHGarfieldReference.cc TpcRunAverageConditions.cc
+libtpccalibrationqa_la_LIBADD = -lphool -lSubsysReco -lfun4all -lffamodules -lcdbobjects -lg4detectors_io -lPHGarfield -lTpcConditions -lCore -lRIO -lGraf3d -lTree
+check_PROGRAMS = test_conditions_utils
+TESTS = test_conditions_utils
+test_conditions_utils_SOURCES = tests/test_conditions_utils.cc

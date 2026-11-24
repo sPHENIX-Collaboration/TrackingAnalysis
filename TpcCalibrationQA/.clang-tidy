@@ -1,0 +1,5 @@
+Checks: '-*,clang-analyzer-*,bugprone-*,performance-*,modernize-use-nullptr,modernize-use-override,readability-redundant-*,readability-container-size-empty'
+WarningsAsErrors: '*'
+HeaderFilterRegex: 'TpcCalibrationQA/.*'
+CheckOptions:
+  bugprone-easily-swappable-parameters.MinimumLength: '4'
